@@ -1,0 +1,20 @@
+services:
+  crypto-bot:
+    image: moifort/crypto-bot:latest
+    container_name: crypto-bot
+    restart: unless-stopped
+    environment:
+      HOST: 0.0.0.0
+      PORT: "3000"
+      NITRO_KRAKEN_API_KEY: ${NITRO_KRAKEN_API_KEY}
+      NITRO_KRAKEN_PRIVATE_KEY: ${NITRO_KRAKEN_PRIVATE_KEY}
+      NITRO_API_TOKEN: ${NITRO_API_TOKEN}
+      NITRO_GRID_LOWER_PRICE: ${NITRO_GRID_LOWER_PRICE:-80000}
+      NITRO_GRID_UPPER_PRICE: ${NITRO_GRID_UPPER_PRICE:-100000}
+      NITRO_GRID_LEVELS: ${NITRO_GRID_LEVELS:-10}
+      NITRO_ORDER_SIZE_USDC: ${NITRO_ORDER_SIZE_USDC:-50}
+      NITRO_SANDBOX_MODE: ${NITRO_SANDBOX_MODE:-true}
+    ports:
+      - "3100:3000"
+    volumes:
+      - ./data:/app/.data

@@ -1,0 +1,12 @@
+.git
+.gitignore
+.idea
+.nitro
+node_modules
+.output
+coverage
+dist
+.data
+.env
+.env.local
+.claude/
