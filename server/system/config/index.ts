@@ -11,6 +11,6 @@ export const config = () => {
     gridUpperPrice: BtcPrice(runtimeConfig.gridUpperPrice),
     gridLevels: Number(runtimeConfig.gridLevels),
     orderSizeUsdc: Usdc(runtimeConfig.orderSizeUsdc),
-    sandboxMode: runtimeConfig.sandboxMode === 'true',
+    sandboxMode: String(runtimeConfig.sandboxMode) === 'true',
   }
 }
