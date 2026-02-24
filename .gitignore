@@ -6,7 +6,23 @@ dist
 .output
 .env
 .env.local
+.derivedData
+data
+output
+
+# iOS / Xcode
 .DS_Store
-.claude/
-.idea/
+*.xcworkspace
+xcuserdata/
+
+# iOS secrets (contains API tokens)
+ios/CaveAVin/Shared/Secrets.swift
+ios/CaveAVinUITests/Support/TestSecrets.swift
+
+doc/
 firebase-debug.log
+
+# Claude Code
+.claude/
+/ios/CaveAVin/Shared/Secrets.swift
+/ios/CaveAVinUITests/Support/TestSecrets.swift
