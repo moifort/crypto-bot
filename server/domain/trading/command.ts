@@ -37,26 +37,42 @@ export namespace TradingCommand {
     const currentPrice = ticker.last
     console.log(`[cycle] BTC/USDC price: ${currentPrice}`)
 
-    await reconcileOrders()
+    await reconcileOrders(currentPrice)
     await placeGridOrders(gridConfig, currentPrice)
     await repository.saveLastCycleAt(nowTimestamp())
   }
 
-  const reconcileOrders = async () => {
+  const reconcileOrders = async (currentPrice: BtcPriceType) => {
     const orders = await repository.findAllOrders()
-    const openOrders = orders.filter((order) => order.status === 'open' && order.krakenOrderId)
+    const openOrders = orders.filter((order) => order.status === 'open')
     if (openOrders.length === 0) return
 
     const { sandboxMode } = config()
-    if (sandboxMode) return
 
-    const krakenOrderIds = openOrders
+    if (sandboxMode) {
+      const filledOrders = openOrders.filter(
+        (order) =>
+          (order.side === 'buy' && currentPrice <= order.price) ||
+          (order.side === 'sell' && currentPrice >= order.price),
+      )
+      await Promise.all(
+        filledOrders.map(async (order) => {
+          await repository.saveOrder({ ...order, status: 'filled', updatedAt: nowTimestamp() })
+          console.log(`[cycle] Sandbox fill: ${order.side} at ${order.price}`)
+          await matchTrade(order)
+        }),
+      )
+      return
+    }
+
+    const krakenOrders = openOrders.filter((order) => order.krakenOrderId)
+    const krakenOrderIds = krakenOrders
       .map((order) => order.krakenOrderId)
       .filter((id): id is NonNullable<typeof id> => id !== undefined)
     const krakenInfos = await kraken.queryOrders(krakenOrderIds)
 
     for (const info of krakenInfos) {
-      const order = openOrders.find((o) => o.krakenOrderId === info.orderId)
+      const order = krakenOrders.find((o) => o.krakenOrderId === info.orderId)
       if (!order) continue
 
       if (info.status === 'closed') {
