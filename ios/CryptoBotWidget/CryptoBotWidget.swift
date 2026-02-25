@@ -83,8 +83,8 @@ struct SmallWidgetView: View {
                 }
                 .font(.system(size: 75, weight: .regular, design: .default))
                 .bold()
-                
-                
+
+
                 HStack(spacing: 2) {
                     Text(formatProfitWithSign(stats.totalProfitUsdc))
                     Text("·")
@@ -108,7 +108,7 @@ struct SmallWidgetView: View {
                     Text(relative)
                         .font(.caption2)
                         .foregroundStyle(.tertiary)
-        
+
                 }
             }
             .frame(maxWidth: .infinity, alignment: .leading)
@@ -239,6 +239,7 @@ private func formatPortfolioValue(_ stats: StatsData) -> String {
 private func formatRelativeDate(_ isoString: String?) -> String? {
     guard let isoString else { return nil }
     let isoFormatter = ISO8601DateFormatter()
+        isoFormatter.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
     guard let date = isoFormatter.date(from: isoString) else { return nil }
     let formatter = RelativeDateTimeFormatter()
     formatter.locale = Locale(identifier: "fr_FR")
@@ -247,18 +248,18 @@ private func formatRelativeDate(_ isoString: String?) -> String? {
 }
 
 private func formatPercentage(profit: Double, invested: Double) -> AttributedString {
-    guard invested > 0 else { 
+    guard invested > 0 else {
         var result = AttributedString("0%")
         return result
     }
     let percentage = (profit / invested) * 100
     let numberString = String(format: "%.0f", abs(percentage))
-    
+
     var result = AttributedString(numberString)
     var percentSymbol = AttributedString("%")
     percentSymbol.font = .system(size: 25)
     result.append(percentSymbol)
-    
+
     return result
 }
 
