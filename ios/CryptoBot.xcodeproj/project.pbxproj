@@ -7,15 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		408BDC2A2D6D00000000001C /* CryptoBotWidgetExtension.appex in Embed Extensions */ = {
-			isa = PBXBuildFile;
-			fileRef = 408BDC2A2D6D000000000007 /* CryptoBotWidgetExtension.appex */;
-			settings = {
-				ATTRIBUTES = (
-					RemoveHeadersOnCopy,
-				);
-			};
-		};
+		408BDC2A2D6D00000000001C /* CryptoBotWidgetExtension.appex in Embed Extensions */ = {isa = PBXBuildFile; fileRef = 408BDC2A2D6D000000000007 /* CryptoBotWidgetExtension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -43,40 +35,27 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
-		408BDC2A2D6D000000000006 /* CryptoBot.app */ = {
-			isa = PBXFileReference;
-			explicitFileType = wrapper.application;
-			includeInIndex = 0;
-			path = CryptoBot.app;
-			sourceTree = BUILT_PRODUCTS_DIR;
-		};
-		408BDC2A2D6D000000000007 /* CryptoBotWidgetExtension.appex */ = {
-			isa = PBXFileReference;
-			explicitFileType = "wrapper.app-extension";
-			includeInIndex = 0;
-			path = CryptoBotWidgetExtension.appex;
-			sourceTree = BUILT_PRODUCTS_DIR;
-		};
+		408BDC2A2D6D000000000006 /* CryptoBot.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = CryptoBot.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		408BDC2A2D6D000000000007 /* CryptoBotWidgetExtension.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = CryptoBotWidgetExtension.appex; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
-		408BDC2A2D6D00000000001D /* PBXFileSystemSynchronizedBuildFileExceptionSet */ = {
+		408BDC2A2D6D00000000001D /* Exceptions for "CryptoBot" folder in "CryptoBotWidgetExtension" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
-				"Shared/APIClient.swift",
-				"Shared/Secrets.swift",
-				"Shared/StatsResponse.swift",
+				Shared/APIClient.swift,
+				Shared/Secrets.swift,
+				Shared/StatsResponse.swift,
 			);
 			target = 408BDC2A2D6D000000000009 /* CryptoBotWidgetExtension */;
 		};
 /* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
 
-
 /* Begin PBXFileSystemSynchronizedRootGroup section */
 		408BDC2A2D6D000000000004 /* CryptoBot */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
 			exceptions = (
-				408BDC2A2D6D00000000001D /* PBXFileSystemSynchronizedBuildFileExceptionSet */,
+				408BDC2A2D6D00000000001D /* Exceptions for "CryptoBot" folder in "CryptoBotWidgetExtension" target */,
 			);
 			path = CryptoBot;
 			sourceTree = "<group>";
@@ -382,6 +361,7 @@
 				CODE_SIGN_ENTITLEMENTS = CryptoBot/CryptoBot.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 46C337T7YN;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = "CryptoBot-Info.plist";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
@@ -409,6 +389,7 @@
 				CODE_SIGN_ENTITLEMENTS = CryptoBot/CryptoBot.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 46C337T7YN;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = "CryptoBot-Info.plist";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
@@ -434,6 +415,7 @@
 				CODE_SIGN_ENTITLEMENTS = CryptoBotWidget/CryptoBotWidget.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 46C337T7YN;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = "CryptoBotWidget-Info.plist";
 				LD_RUNPATH_SEARCH_PATHS = (
@@ -456,6 +438,7 @@
 				CODE_SIGN_ENTITLEMENTS = CryptoBotWidget/CryptoBotWidget.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 46C337T7YN;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = "CryptoBotWidget-Info.plist";
 				LD_RUNPATH_SEARCH_PATHS = (
@@ -503,7 +486,6 @@
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
-
 	};
 	rootObject = 408BDC2A2D6D000000000001 /* Project object */;
 }

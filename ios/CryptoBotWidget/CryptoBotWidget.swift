@@ -282,7 +282,7 @@ extension StatsData {
             spacing: 2000,
             createdAt: "2026-01-01T00:00:00Z"
         ),
-        lastCycleAt: "2026-02-24T12:00:00Z"
+        lastCycleAt: "2026-02-25T12:00:00Z"
     )
 }
 
