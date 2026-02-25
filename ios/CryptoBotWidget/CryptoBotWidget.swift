@@ -55,11 +55,16 @@ struct WidgetEntryView: View {
     let entry: StatsEntry
 
     var body: some View {
-        switch family {
-        case .systemMedium:
-            MediumWidgetView(entry: entry)
-        default:
-            SmallWidgetView(entry: entry)
+        Group {
+            switch family {
+            case .systemMedium:
+                MediumWidgetView(entry: entry)
+            default:
+                SmallWidgetView(entry: entry)
+            }
+        }
+        .containerBackground(for: .widget) {
+            Color.clear
         }
     }
 }
@@ -71,29 +76,40 @@ struct SmallWidgetView: View {
 
     var body: some View {
         if let stats = entry.stats {
-            VStack(alignment: .leading, spacing: 8) {
-                HStack {
-                    Image(systemName: "bitcoinsign.circle.fill")
-                        .foregroundStyle(.orange)
-                    Text("CryptoBot")
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
+            VStack(alignment: .leading, spacing: 4) {
+                HStack(spacing: 2) {
+                    Text(formatPercentage(profit: stats.totalProfitUsdc, invested: stats.balanceUsdc + stats.balanceBtc * stats.currentPrice))
+                        .foregroundStyle(stats.totalProfitUsdc >= 0 ? .green : .red)
                 }
+                .font(.system(size: 75, weight: .regular, design: .default))
+                .bold()
+                
+                
+                HStack(spacing: 2) {
+                    Text(formatProfitWithSign(stats.totalProfitUsdc))
+                    Text("·")
+                    Text(formatPortfolioValue(stats))
+                }
+                .font(.caption)
+                .foregroundStyle(.secondary)
 
-                Text(formatUsdc(stats.totalProfitUsdc))
-                    .font(.title2)
-                    .fontWeight(.bold)
-                    .foregroundStyle(stats.totalProfitUsdc >= 0 ? .green : .red)
 
-                Label("\(stats.tradeCount) trades", systemImage: "arrow.left.arrow.right")
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
+                HStack(spacing: 2) {
+                    Image(systemName: "clock.arrow.circlepath")
+                    Text("\(stats.tradeCount)")
+                    Text("·")
+                    Image(systemName: "hourglass")
+                    Text("\(stats.openBuyOrders + stats.openSellOrders)")
+                }
+                .font(.caption)
+                .foregroundStyle(.secondary)
 
-                Spacer()
-
-                Text(formatUsdc(stats.currentPrice))
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
+                if let relative = formatRelativeDate(stats.lastCycleAt) {
+                    Text(relative)
+                        .font(.caption2)
+                        .foregroundStyle(.tertiary)
+        
+                }
             }
             .frame(maxWidth: .infinity, alignment: .leading)
         } else {
@@ -109,55 +125,56 @@ struct MediumWidgetView: View {
 
     var body: some View {
         if let stats = entry.stats {
-            HStack(spacing: 16) {
-                VStack(alignment: .leading, spacing: 8) {
-                    HStack {
-                        Image(systemName: "bitcoinsign.circle.fill")
-                            .foregroundStyle(.orange)
-                        Text("CryptoBot")
-                            .font(.caption)
-                            .foregroundStyle(.secondary)
-                    }
-
-                    Text(formatUsdc(stats.totalProfitUsdc))
-                        .font(.title2)
-                        .fontWeight(.bold)
+            VStack(alignment: .leading, spacing: 4) {
+                HStack(spacing: 2) {
+                    Text(formatPercentage(profit: stats.totalProfitUsdc, invested: stats.balanceUsdc + stats.balanceBtc * stats.currentPrice))
                         .foregroundStyle(stats.totalProfitUsdc >= 0 ? .green : .red)
-
-                    Label("\(stats.tradeCount) trades", systemImage: "arrow.left.arrow.right")
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
-
-                    Spacer()
-
-                    Text(formatUsdc(stats.currentPrice))
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
                 }
+                .font(.system(size: 75, weight: .regular, design: .default))
+                .bold()
 
-                Divider()
-
-                VStack(alignment: .leading, spacing: 6) {
-                    Label("\(stats.openBuyOrders) buy", systemImage: "arrow.down.circle")
-                        .font(.caption)
-                        .foregroundStyle(.green)
-
-                    Label("\(stats.openSellOrders) sell", systemImage: "arrow.up.circle")
-                        .font(.caption)
-                        .foregroundStyle(.red)
-
-                    Spacer()
-
-                    Text(formatUsdc(stats.balanceUsdc))
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
-
-                    Text(formatBtc(stats.balanceBtc))
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
+                HStack(spacing: 2) {
+                    Text(formatProfitWithSign(stats.totalProfitUsdc))
+                    Text("·")
+                    Text(formatPortfolioValue(stats))
                 }
+                .font(.caption)
+                .foregroundStyle(.secondary)
 
                 Spacer()
+
+                HStack(spacing: 2) {
+                    Image(systemName: "clock.arrow.circlepath")
+                    Text("\(stats.tradeCount)")
+                    Text("·")
+                    Image(systemName: "hourglass")
+                    Text("\(stats.openBuyOrders + stats.openSellOrders)")
+                }
+                .font(.caption)
+                .foregroundStyle(.secondary)
+
+                HStack {
+                    HStack(spacing: 4) {
+                        Image(systemName: "arrow.left.arrow.right")
+                            .foregroundStyle(.green)
+                        Text("\(stats.openBuyOrders) buy")
+                        Image(systemName: "arrow.right.arrow.left")
+                            .foregroundStyle(.orange)
+                        Text("\(stats.openSellOrders) sell")
+                        Text("·")
+                        Text("\(stats.openBuyOrders + stats.openSellOrders)")
+                    }
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+
+                    Spacer()
+
+                    if let relative = formatRelativeDate(stats.lastCycleAt) {
+                        Text(relative)
+                            .font(.caption2)
+                            .foregroundStyle(.tertiary)
+                    }
+                }
             }
             .frame(maxWidth: .infinity, alignment: .leading)
         } else {
@@ -175,7 +192,6 @@ struct CryptoBotWidget: Widget {
     var body: some WidgetConfiguration {
         StaticConfiguration(kind: kind, provider: StatsProvider()) { entry in
             WidgetEntryView(entry: entry)
-                .containerBackground(.fill.tertiary, for: .widget)
         }
         .configurationDisplayName("CryptoBot")
         .description("Trading bot stats at a glance.")
@@ -197,19 +213,60 @@ private func errorPlaceholder(_ error: String?) -> some View {
     }
 }
 
-private func formatUsdc(_ value: Double) -> String {
-    String(format: "$%.2f", value)
+private func formatProfit(_ value: Double) -> String {
+    formatUsdc(value)
 }
 
-private func formatBtc(_ value: Double) -> String {
-    String(format: "%.6f BTC", value)
+private func formatProfitWithSign(_ value: Double) -> String {
+    let sign = value >= 0 ? "+" : "-"
+    return "\(sign)\(formatUsdc(value))"
+}
+
+private func formatUsdc(_ value: Double) -> String {
+    String(format: "$%.0f", abs(value))
+}
+
+private func formatPortfolioValue(_ stats: StatsData) -> String {
+    let total = stats.balanceUsdc + stats.balanceBtc * stats.currentPrice
+    let formatter = NumberFormatter()
+    formatter.numberStyle = .decimal
+    formatter.maximumFractionDigits = 0
+    formatter.groupingSeparator = "\u{202F}"
+    let formatted = formatter.string(from: NSNumber(value: total)) ?? "\(Int(total))"
+    return "$\(formatted)"
+}
+
+private func formatRelativeDate(_ isoString: String?) -> String? {
+    guard let isoString else { return nil }
+    let isoFormatter = ISO8601DateFormatter()
+    guard let date = isoFormatter.date(from: isoString) else { return nil }
+    let formatter = RelativeDateTimeFormatter()
+    formatter.locale = Locale(identifier: "fr_FR")
+    formatter.unitsStyle = .full
+    return formatter.localizedString(for: date, relativeTo: .now)
+}
+
+private func formatPercentage(profit: Double, invested: Double) -> AttributedString {
+    guard invested > 0 else { 
+        var result = AttributedString("0%")
+        return result
+    }
+    let percentage = (profit / invested) * 100
+    let numberString = String(format: "%.0f", abs(percentage))
+    
+    var result = AttributedString(numberString)
+    var percentSymbol = AttributedString("%")
+    percentSymbol.font = .system(size: 25)
+    result.append(percentSymbol)
+    
+    return result
 }
 
 // MARK: - Placeholder
 
 extension StatsData {
     static let placeholder = StatsData(
-        totalProfitUsdc: 142.50,
+        totalProfitUsdc: 1242.50,
         tradeCount: 28,
         openBuyOrders: 5,
         openSellOrders: 4,
@@ -228,6 +285,7 @@ extension StatsData {
         lastCycleAt: "2026-02-24T12:00:00Z"
     )
 }
+
 // MARK: - Previews
 
 #Preview(as: .systemSmall) {
@@ -247,4 +305,3 @@ extension StatsData {
 } timeline: {
     StatsEntry(date: .now, stats: nil, error: "Network unavailable")
 }
-
