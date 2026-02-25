@@ -281,9 +281,9 @@ extension StatsData {
             levels: 10,
             orderSizeUsdc: 500,
             spacing: 2000,
-            createdAt: "2026-01-01T00:00:00Z"
+            createdAt: "2026-01-01T00:00:00.000Z"
         ),
-        lastCycleAt: "2026-02-25T12:00:00Z"
+        lastCycleAt: "2026-02-25T12:00:00.000Z"
     )
 }
 

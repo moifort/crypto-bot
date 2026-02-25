@@ -16,13 +16,10 @@ output
 xcuserdata/
 
 # iOS secrets (contains API tokens)
-ios/CaveAVin/Shared/Secrets.swift
-ios/CaveAVinUITests/Support/TestSecrets.swift
+ios/CryptoBot/Shared/Secrets.swift
 
 doc/
 firebase-debug.log
 
 # Claude Code
 .claude/
-/ios/CaveAVin/Shared/Secrets.swift
-/ios/CaveAVinUITests/Support/TestSecrets.swift
