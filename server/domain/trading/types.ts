@@ -29,6 +29,7 @@ export type GridOrder = {
   sizeBtc: Btc
   level: GridLevel
   status: 'pending' | 'open' | 'filled' | 'cancelled'
+  fee?: Usdc
   createdAt: Timestamp
   updatedAt: Timestamp
 }
@@ -41,5 +42,6 @@ export type CompletedTrade = {
   sellPrice: BtcPrice
   sizeBtc: Btc
   profitUsdc: Usdc
+  feeUsdc: Usdc
   completedAt: Timestamp
 }

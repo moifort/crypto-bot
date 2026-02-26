@@ -57,9 +57,15 @@ export namespace TradingCommand {
       )
       await Promise.all(
         filledOrders.map(async (order) => {
-          await repository.saveOrder({ ...order, status: 'filled', updatedAt: nowTimestamp() })
+          const fee = Usdc(Number(order.sizeUsdc) * 0.0025)
+          await repository.saveOrder({
+            ...order,
+            status: 'filled',
+            fee,
+            updatedAt: nowTimestamp(),
+          })
           console.log(`[cycle] Sandbox fill: ${order.side} at ${order.price}`)
-          await matchTrade(order)
+          await matchTrade({ ...order, fee })
         }),
       )
       return
@@ -79,11 +85,12 @@ export namespace TradingCommand {
         const updatedOrder: GridOrder = {
           ...order,
           status: 'filled',
+          fee: info.fee,
           updatedAt: nowTimestamp(),
         }
         await repository.saveOrder(updatedOrder)
         console.log(`[cycle] Order filled: ${order.side} at ${order.price}`)
-        await matchTrade(order)
+        await matchTrade(updatedOrder)
       } else if (info.status === 'canceled' || info.status === 'expired') {
         await repository.saveOrder({ ...order, status: 'cancelled', updatedAt: nowTimestamp() })
       }
@@ -101,6 +108,7 @@ export namespace TradingCommand {
     const buyOrder = filledOrder.side === 'buy' ? filledOrder : matchingOrder
     const sellOrder = filledOrder.side === 'sell' ? filledOrder : matchingOrder
 
+    const feeUsdc = Usdc(Number(buyOrder.fee ?? 0) + Number(sellOrder.fee ?? 0))
     await repository.saveTrade({
       id: randomTradeId(),
       buyOrderId: buyOrder.id,
@@ -110,8 +118,10 @@ export namespace TradingCommand {
       sizeBtc: buyOrder.sizeBtc,
       profitUsdc: Usdc(
         Number(sellOrder.price) * Number(buyOrder.sizeBtc) -
-          Number(buyOrder.price) * Number(buyOrder.sizeBtc),
+          Number(buyOrder.price) * Number(buyOrder.sizeBtc) -
+          Number(feeUsdc),
       ),
+      feeUsdc,
       completedAt: nowTimestamp(),
     })
     console.log(`[cycle] Trade completed: buy@${buyOrder.price} -> sell@${sellOrder.price}`)

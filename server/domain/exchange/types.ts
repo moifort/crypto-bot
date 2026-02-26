@@ -26,4 +26,5 @@ export type KrakenOrderInfo = {
   price: BtcPrice
   volume: Btc
   volumeExecuted: Btc
+  fee: Usdc
 }

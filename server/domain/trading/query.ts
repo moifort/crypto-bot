@@ -1,6 +1,7 @@
 import * as kraken from '~/domain/exchange/kraken'
 import { Usdc } from '~/domain/shared/primitives'
 import * as repository from '~/domain/trading/repository'
+import { config } from '~/system/config/index'
 
 export namespace TradingQuery {
   export const getStats = async () => {
@@ -19,9 +20,16 @@ export namespace TradingQuery {
       (order) => order.status === 'open' || order.status === 'pending',
     )
     const totalProfitUsdc = trades.reduce((sum, trade) => sum + Number(trade.profitUsdc), 0)
+    const totalFeesUsdc = trades.reduce((sum, trade) => sum + Number(trade.feeUsdc ?? 0), 0)
+
+    const { sandboxMode } = config()
+    const sommeMiseUsdc = sandboxMode
+      ? Usdc(gridConfig.levels * gridConfig.orderSizeUsdc)
+      : Usdc(balance.usdc + balance.btc * ticker.last - totalProfitUsdc)
 
     return {
       totalProfitUsdc: Usdc(totalProfitUsdc),
+      totalFeesUsdc: Usdc(totalFeesUsdc),
       tradeCount: trades.length,
       openBuyOrders: activeOrders.filter((o) => o.side === 'buy').length,
       openSellOrders: activeOrders.filter((o) => o.side === 'sell').length,
@@ -30,6 +38,8 @@ export namespace TradingQuery {
       currentPrice: ticker.last,
       gridConfig,
       lastCycleAt: lastCycleAt ?? undefined,
+      sandboxMode,
+      sommeMiseUsdc,
     }
   }
 }

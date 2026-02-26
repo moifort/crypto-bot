@@ -15,6 +15,7 @@ type KrakenRawOrder = {
   status: KrakenOrderStatus
   vol: string
   vol_exec: string
+  fee: string
   descr: { type: string; price: string }
 }
 
@@ -122,6 +123,7 @@ export const queryOrders = async (orderIds: KrakenOrderId[]): Promise<KrakenOrde
     price: BtcPrice(order.descr.price),
     volume: Btc(order.vol),
     volumeExecuted: Btc(order.vol_exec),
+    fee: Usdc(order.fee),
   }))
 }
 
@@ -135,6 +137,7 @@ export const getOpenOrders = async (): Promise<KrakenOrderInfo[]> => {
     price: BtcPrice(order.descr.price),
     volume: Btc(order.vol),
     volumeExecuted: Btc(order.vol_exec),
+    fee: Usdc(order.fee),
   }))
 }
 
