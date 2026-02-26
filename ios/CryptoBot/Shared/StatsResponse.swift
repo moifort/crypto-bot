@@ -7,6 +7,7 @@ struct StatsResponse: Codable, Sendable {
 
 struct StatsData: Codable, Sendable {
     let totalProfitUsdc: Double
+    let totalFeesUsdc: Double
     let tradeCount: Int
     let openBuyOrders: Int
     let openSellOrders: Int
@@ -15,6 +16,8 @@ struct StatsData: Codable, Sendable {
     let currentPrice: Double
     let gridConfig: GridConfig
     let lastCycleAt: String?
+    let sandboxMode: Bool
+    let sommeMiseUsdc: Double
 }
 
 struct GridConfig: Codable, Sendable {

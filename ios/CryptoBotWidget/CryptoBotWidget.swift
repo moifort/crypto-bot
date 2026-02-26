@@ -78,17 +78,19 @@ struct SmallWidgetView: View {
         if let stats = entry.stats {
             VStack(alignment: .leading, spacing: 4) {
                 HStack(spacing: 2) {
-                    Text(formatPercentage(profit: stats.totalProfitUsdc, invested: stats.balanceUsdc + stats.balanceBtc * stats.currentPrice))
+                    Text(formatPercentage(profit: stats.totalProfitUsdc, sommeMise: stats.sommeMiseUsdc))
                         .foregroundStyle(stats.totalProfitUsdc >= 0 ? .green : .red)
                 }
-                .font(.system(size: 75, weight: .regular, design: .default))
-                .bold()
+                .font(.system(size: 87, weight: .regular, design: .default))
+                .padding(.top, -15)
+                .padding(.bottom, -12)
 
+                Spacer()
 
                 HStack(spacing: 2) {
                     Text(formatProfitWithSign(stats.totalProfitUsdc))
                     Text("·")
-                    Text(formatPortfolioValue(stats))
+                    Text(formatPortfolioValue(stats.sommeMiseUsdc + stats.totalProfitUsdc))
                 }
                 .font(.caption)
                 .foregroundStyle(.secondary)
@@ -100,6 +102,8 @@ struct SmallWidgetView: View {
                     Text("·")
                     Image(systemName: "hourglass")
                     Text("\(stats.openBuyOrders + stats.openSellOrders)")
+                    Text("·")
+                    Text("\(formatUsdc(stats.totalFeesUsdc)) fees")
                 }
                 .font(.caption)
                 .foregroundStyle(.secondary)
@@ -127,39 +131,38 @@ struct MediumWidgetView: View {
         if let stats = entry.stats {
             VStack(alignment: .leading, spacing: 4) {
                 HStack(spacing: 2) {
-                    Text(formatPercentage(profit: stats.totalProfitUsdc, invested: stats.balanceUsdc + stats.balanceBtc * stats.currentPrice))
+                    Text(formatPercentage(profit: stats.totalProfitUsdc, sommeMise: stats.sommeMiseUsdc))
                         .foregroundStyle(stats.totalProfitUsdc >= 0 ? .green : .red)
                 }
-                .font(.system(size: 75, weight: .regular, design: .default))
-                .bold()
+                .font(.system(size: 100, weight: .regular, design: .default))
+                .padding(.top, -22)
+                .padding(.bottom, -13)
 
-                HStack(spacing: 2) {
+
+                HStack(spacing: 4) {
                     Text(formatProfitWithSign(stats.totalProfitUsdc))
                     Text("·")
-                    Text(formatPortfolioValue(stats))
+                    Text(formatPortfolioValue(stats.sommeMiseUsdc + stats.totalProfitUsdc))
                 }
                 .font(.caption)
                 .foregroundStyle(.secondary)
 
-                Spacer()
-
-                HStack(spacing: 2) {
+                HStack(spacing: 4) {
                     Image(systemName: "clock.arrow.circlepath")
                     Text("\(stats.tradeCount)")
                     Text("·")
                     Image(systemName: "hourglass")
                     Text("\(stats.openBuyOrders + stats.openSellOrders)")
+                    Text("·")
+                    Text("\(formatUsdc(stats.totalFeesUsdc)) fees")
                 }
                 .font(.caption)
                 .foregroundStyle(.secondary)
 
                 HStack {
-                    HStack(spacing: 4) {
-                        Image(systemName: "arrow.left.arrow.right")
-                            .foregroundStyle(.green)
+                    HStack(spacing: 2) {
                         Text("\(stats.openBuyOrders) buy")
-                        Image(systemName: "arrow.right.arrow.left")
-                            .foregroundStyle(.orange)
+                        Text("·")
                         Text("\(stats.openSellOrders) sell")
                         Text("·")
                         Text("\(stats.openBuyOrders + stats.openSellOrders)")
@@ -226,8 +229,7 @@ private func formatUsdc(_ value: Double) -> String {
     String(format: "$%.0f", abs(value))
 }
 
-private func formatPortfolioValue(_ stats: StatsData) -> String {
-    let total = stats.balanceUsdc + stats.balanceBtc * stats.currentPrice
+private func formatPortfolioValue(_ total: Double) -> String {
     let formatter = NumberFormatter()
     formatter.numberStyle = .decimal
     formatter.maximumFractionDigits = 0
@@ -247,17 +249,20 @@ private func formatRelativeDate(_ isoString: String?) -> String? {
     return formatter.localizedString(for: date, relativeTo: .now)
 }
 
-private func formatPercentage(profit: Double, invested: Double) -> AttributedString {
-    guard invested > 0 else {
-        var result = AttributedString("0%")
+private func formatPercentage(profit: Double, sommeMise: Double) -> AttributedString {
+    guard sommeMise > 0 else {
+        var result = AttributedString("0")
+        var percentSymbol = AttributedString("%")
+        percentSymbol.font = .system(size: 25).bold()
+        result.append(percentSymbol)
         return result
     }
-    let percentage = (profit / invested) * 100
+    let percentage = (profit / sommeMise) * 100
     let numberString = String(format: "%.0f", abs(percentage))
 
     var result = AttributedString(numberString)
     var percentSymbol = AttributedString("%")
-    percentSymbol.font = .system(size: 25)
+    percentSymbol.font = .system(size: 25).bold()
     result.append(percentSymbol)
 
     return result
@@ -268,6 +273,7 @@ private func formatPercentage(profit: Double, invested: Double) -> AttributedStr
 extension StatsData {
     static let placeholder = StatsData(
         totalProfitUsdc: 1242.50,
+        totalFeesUsdc: 42.0,
         tradeCount: 28,
         openBuyOrders: 5,
         openSellOrders: 4,
@@ -283,7 +289,9 @@ extension StatsData {
             spacing: 2000,
             createdAt: "2026-01-01T00:00:00.000Z"
         ),
-        lastCycleAt: "2026-02-25T12:00:00.000Z"
+        lastCycleAt: "2026-02-25T12:00:00.000Z",
+        sandboxMode: true,
+        sommeMiseUsdc: 5000.0
     )
 }
 
