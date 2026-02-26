@@ -26,6 +26,11 @@ services:
         published: "3100"
         protocol: tcp
     pull_policy: always
+    logging:
+      driver: json-file
+      options:
+        max-size: 10m
+        max-file: "3"
     restart: unless-stopped
     volumes:
       - type: bind
