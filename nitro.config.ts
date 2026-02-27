@@ -16,6 +16,7 @@ export default defineNitroConfig({
     gridLevels: '',
     orderSizeUsdc: '',
     sandboxMode: '',
+    sentryDsn: '',
   },
   storage: {
     grid: { driver: 'fs', base: './.data/db/grid' },

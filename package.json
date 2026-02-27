@@ -16,6 +16,7 @@
     "typescript": "5.5.4"
   },
   "dependencies": {
+    "@sentry/bun": "10.40.0",
     "zod": "4.3.6"
   }
 }

@@ -1,0 +1,38 @@
+name: Sentry Autofix
+
+on:
+  repository_dispatch:
+    types: [sentry-bug]
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  autofix:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Create fix with Claude Code
+        uses: anthropics/claude-code-action@v1
+        with:
+          anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
+          direct_prompt: |
+            A Sentry error was reported in production. Here are the details:
+
+            **Title:** ${{ github.event.client_payload.title }}
+            **Error:** ${{ github.event.client_payload.error }}
+            **File:** ${{ github.event.client_payload.file }}
+            **Line:** ${{ github.event.client_payload.line }}
+            **Stacktrace:**
+            ```
+            ${{ github.event.client_payload.stacktrace }}
+            ```
+
+            Please investigate this error and create a fix. Follow the project conventions in CLAUDE.md.
+          branch: sentry-fix/${{ github.event.client_payload.issue_id }}
+          create_pr: true
+          pr_title: "fix: ${{ github.event.client_payload.title }}"
+          pr_labels: sentry-autofix, bug

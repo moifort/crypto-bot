@@ -1,5 +1,5 @@
 import { BtcPrice, Usdc } from '~/domain/shared/primitives'
-import { ApiToken, KrakenApiKey, KrakenPrivateKey } from '~/system/config/primitives'
+import { ApiToken, KrakenApiKey, KrakenPrivateKey, SentryDsn } from '~/system/config/primitives'
 
 export const config = () => {
   const runtimeConfig = useRuntimeConfig()
@@ -12,5 +12,6 @@ export const config = () => {
     gridLevels: Number(runtimeConfig.gridLevels),
     orderSizeUsdc: Usdc(runtimeConfig.orderSizeUsdc),
     sandboxMode: String(runtimeConfig.sandboxMode) === 'true',
+    sentryDsn: runtimeConfig.sentryDsn ? SentryDsn(runtimeConfig.sentryDsn) : undefined,
   }
 }

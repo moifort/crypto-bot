@@ -1,3 +1,4 @@
+import * as Sentry from '@sentry/bun'
 import { TradingCommand } from '~/domain/trading/command'
 
 export default defineTask({
@@ -12,6 +13,7 @@ export default defineTask({
     } catch (error) {
       const message = error instanceof Error ? error.message : String(error)
       console.error(`[task:cycle] Error: ${message}`)
+      Sentry.captureException(error)
       return { result: 'error', error: message }
     }
   },

@@ -19,6 +19,7 @@ services:
       - NITRO_GRID_LEVELS=${NITRO_GRID_LEVELS:-10}
       - NITRO_ORDER_SIZE_USDC=${NITRO_ORDER_SIZE_USDC:-50}
       - NITRO_SANDBOX_MODE=${NITRO_SANDBOX_MODE:-true}
+      - NITRO_SENTRY_DSN=${NITRO_SENTRY_DSN:-}
     hostname: crypto-bot
     image: moifort/crypto-bot:latest
     ports:
