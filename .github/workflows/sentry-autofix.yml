@@ -49,6 +49,7 @@ jobs:
                - Titre : fix: <description concise>
                - Body : sections Sentry Error (lien), Root Cause, Fix, Verification
                - Labels : sentry-autofix, bug
+               - Assignees : moifort
 
             Si tu ne peux pas determiner un fix avec confiance, cree quand meme la PR
             avec ton analyse et une piste d'investigation.
