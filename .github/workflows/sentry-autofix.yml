@@ -7,32 +7,50 @@ on:
 permissions:
   contents: write
   pull-requests: write
+  issues: write
+
+concurrency:
+  group: sentry-autofix-${{ github.event.client_payload.title }}
+  cancel-in-progress: true
 
 jobs:
   autofix:
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Create fix with Claude Code
-        uses: anthropics/claude-code-action@v1
+      - uses: anthropics/claude-code-action@v1
         with:
           anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
-          direct_prompt: |
-            A Sentry error was reported in production. Here are the details:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          prompt: |
+            Tu es un developpeur expert qui corrige un bug de production detecte par Sentry.
 
-            **Title:** ${{ github.event.client_payload.title }}
-            **Error:** ${{ github.event.client_payload.error }}
-            **File:** ${{ github.event.client_payload.file }}
-            **Line:** ${{ github.event.client_payload.line }}
-            **Stacktrace:**
-            ```
-            ${{ github.event.client_payload.stacktrace }}
-            ```
+            ## Erreur Sentry
+            - **Titre**: ${{ github.event.client_payload.title }}
+            - **Culprit**: ${{ github.event.client_payload.culprit }}
+            - **Level**: ${{ github.event.client_payload.level }}
+            - **Event**: ${{ github.event.client_payload.action }}
+            - **URL Sentry**: ${{ github.event.client_payload.url }}
+            - **Platform**: ${{ github.event.client_payload.platform }}
+            - **Metadata**: ${{ toJson(github.event.client_payload.metadata) }}
 
-            Please investigate this error and create a fix. Follow the project conventions in CLAUDE.md.
-          branch: sentry-fix/${{ github.event.client_payload.issue_id }}
-          create_pr: true
-          pr_title: "fix: ${{ github.event.client_payload.title }}"
-          pr_labels: sentry-autofix, bug
+            ## Instructions
+            1. Lis le CLAUDE.md du repo pour comprendre les conventions du projet
+            2. Analyse l'erreur et trouve le code responsable
+            3. Propose un fix minimal et cible
+            4. Verifie ton fix (typecheck, lint selon les commandes du CLAUDE.md)
+            5. Cree une PR avec :
+               - Branche : sentry-fix/<description-courte>
+               - Titre : fix: <description concise>
+               - Body : sections Sentry Error (lien), Root Cause, Fix, Verification
+               - Labels : sentry-autofix, bug
+
+            Si tu ne peux pas determiner un fix avec confiance, cree quand meme la PR
+            avec ton analyse et une piste d'investigation.
+          claude_args: "--model claude-sonnet-4-6 --max-turns 30 --allowedTools 'Edit,Write,Bash(*)'"
+          branch_prefix: "sentry-fix/"
