@@ -25,7 +25,7 @@ export namespace TradingQuery {
     const { sandboxMode } = config()
     const sommeMiseUsdc = sandboxMode
       ? Usdc(gridConfig.levels * gridConfig.orderSizeUsdc)
-      : Usdc(balance.usdc + balance.btc * ticker.last - totalProfitUsdc)
+      : Usdc(Math.max(0, balance.usdc + balance.btc * ticker.last - totalProfitUsdc))
 
     return {
       totalProfitUsdc: Usdc(totalProfitUsdc),
