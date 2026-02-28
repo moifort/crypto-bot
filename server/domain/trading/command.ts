@@ -117,9 +117,12 @@ export namespace TradingCommand {
       sellPrice: sellOrder.price,
       sizeBtc: buyOrder.sizeBtc,
       profitUsdc: Usdc(
-        Number(sellOrder.price) * Number(buyOrder.sizeBtc) -
-          Number(buyOrder.price) * Number(buyOrder.sizeBtc) -
-          Number(feeUsdc),
+        Math.max(
+          0,
+          Number(sellOrder.price) * Number(buyOrder.sizeBtc) -
+            Number(buyOrder.price) * Number(buyOrder.sizeBtc) -
+            Number(feeUsdc),
+        ),
       ),
       feeUsdc,
       completedAt: nowTimestamp(),
