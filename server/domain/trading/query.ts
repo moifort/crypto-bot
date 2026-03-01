@@ -1,5 +1,5 @@
 import * as kraken from '~/domain/exchange/kraken'
-import { Usdc } from '~/domain/shared/primitives'
+import { SignedUsdc, Usdc } from '~/domain/shared/primitives'
 import * as repository from '~/domain/trading/repository'
 import { config } from '~/system/config/index'
 
@@ -23,12 +23,14 @@ export namespace TradingQuery {
     const totalFeesUsdc = trades.reduce((sum, trade) => sum + Number(trade.feeUsdc ?? 0), 0)
 
     const { sandboxMode } = config()
-    const sommeMiseUsdc = sandboxMode
-      ? Usdc(gridConfig.levels * gridConfig.orderSizeUsdc)
-      : Usdc(Math.max(0, balance.usdc + balance.btc * ticker.last - totalProfitUsdc))
+    const sommeMiseUsdc = SignedUsdc(
+      sandboxMode
+        ? gridConfig.levels * gridConfig.orderSizeUsdc
+        : balance.usdc + balance.btc * ticker.last - totalProfitUsdc,
+    )
 
     return {
-      totalProfitUsdc: Usdc(totalProfitUsdc),
+      totalProfitUsdc: SignedUsdc(totalProfitUsdc),
       totalFeesUsdc: Usdc(totalFeesUsdc),
       tradeCount: trades.length,
       openBuyOrders: activeOrders.filter((o) => o.side === 'buy').length,

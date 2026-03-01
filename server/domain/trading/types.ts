@@ -1,5 +1,5 @@
 import type { Brand } from 'ts-brand'
-import type { Btc, BtcPrice, Timestamp, Usdc } from '~/domain/shared/types'
+import type { Btc, BtcPrice, SignedUsdc, Timestamp, Usdc } from '~/domain/shared/types'
 
 export type GridId = Brand<string, 'GridId'>
 export type OrderId = Brand<string, 'OrderId'>
@@ -41,7 +41,7 @@ export type CompletedTrade = {
   buyPrice: BtcPrice
   sellPrice: BtcPrice
   sizeBtc: Btc
-  profitUsdc: Usdc
+  profitUsdc: SignedUsdc
   feeUsdc: Usdc
   completedAt: Timestamp
 }

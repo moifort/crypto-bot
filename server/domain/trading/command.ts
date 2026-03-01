@@ -1,5 +1,5 @@
 import * as kraken from '~/domain/exchange/kraken'
-import { Btc, BtcPrice, nowTimestamp, Usdc } from '~/domain/shared/primitives'
+import { Btc, BtcPrice, nowTimestamp, SignedUsdc, Usdc } from '~/domain/shared/primitives'
 import type { BtcPrice as BtcPriceType } from '~/domain/shared/types'
 import { GridLevel, randomGridId, randomOrderId, randomTradeId } from '~/domain/trading/primitives'
 import * as repository from '~/domain/trading/repository'
@@ -116,13 +116,10 @@ export namespace TradingCommand {
       buyPrice: buyOrder.price,
       sellPrice: sellOrder.price,
       sizeBtc: buyOrder.sizeBtc,
-      profitUsdc: Usdc(
-        Math.max(
-          0,
-          Number(sellOrder.price) * Number(buyOrder.sizeBtc) -
-            Number(buyOrder.price) * Number(buyOrder.sizeBtc) -
-            Number(feeUsdc),
-        ),
+      profitUsdc: SignedUsdc(
+        Number(sellOrder.price) * Number(buyOrder.sizeBtc) -
+          Number(buyOrder.price) * Number(buyOrder.sizeBtc) -
+          Number(feeUsdc),
       ),
       feeUsdc,
       completedAt: nowTimestamp(),
