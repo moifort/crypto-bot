@@ -3,7 +3,9 @@
   "private": true,
   "scripts": {
     "build": "nitro build",
-    "dev": "nitro dev --host 0.0.0.0"
+    "dev": "nitro dev --host 0.0.0.0",
+    "prepare": "bunx nitro prepare",
+    "lint": "bunx biome check --fix"
   },
   "devDependencies": {
     "@biomejs/biome": "2.3.14",
