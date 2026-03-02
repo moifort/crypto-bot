@@ -53,8 +53,16 @@ struct ContentView: View {
             }
 
             Section("Orders") {
-                row("Buy Orders", value: "\(stats.openBuyOrders)", color: .green)
-                row("Sell Orders", value: "\(stats.openSellOrders)", color: .red)
+                NavigationLink {
+                    OrdersView()
+                } label: {
+                    row("Buy Orders", value: "\(stats.openBuyOrders)", color: .green)
+                }
+                NavigationLink {
+                    OrdersView()
+                } label: {
+                    row("Sell Orders", value: "\(stats.openSellOrders)", color: .red)
+                }
             }
 
             Section("Market") {

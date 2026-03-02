@@ -44,6 +44,7 @@
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
 				Shared/APIClient.swift,
+				Shared/OrdersResponse.swift,
 				Shared/Secrets.swift,
 				Shared/StatsResponse.swift,
 				Shared/TradesResponse.swift,

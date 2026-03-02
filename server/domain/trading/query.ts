@@ -26,6 +26,24 @@ export namespace TradingQuery {
       .sort((a, b) => new Date(b.completedAt).getTime() - new Date(a.completedAt).getTime())
   }
 
+  export const getOrders = async () => {
+    const orders = await repository.findAllOrders()
+    return orders
+      .filter((o) => o.status === 'open' || o.status === 'pending')
+      .sort((a, b) => a.level - b.level)
+      .map(({ id, side, price, sizeUsdc, sizeBtc, level, status, createdAt, updatedAt }) => ({
+        id,
+        side,
+        price,
+        sizeUsdc,
+        sizeBtc,
+        level,
+        status,
+        createdAt,
+        updatedAt,
+      }))
+  }
+
   export const getStats = async () => {
     const gridConfig = await repository.getGridConfig()
     if (!gridConfig) throw new Error('Grid not initialized')
