@@ -30,6 +30,26 @@ struct APIClient: Sendable {
 
         return try JSONDecoder().decode(StatsResponse.self, from: data).data
     }
+
+    static func fetchTrades() async throws -> [TradeData] {
+        guard let url = URL(string: "\(serverURL)/trades") else {
+            throw APIError.invalidURL
+        }
+
+        var request = URLRequest(url: url)
+        request.setValue("Bearer \(Secrets.apiToken)", forHTTPHeaderField: "Authorization")
+        request.timeoutInterval = 10
+
+        let (data, response) = try await URLSession.shared.data(for: request)
+
+        guard let httpResponse = response as? HTTPURLResponse,
+              (200...299).contains(httpResponse.statusCode) else {
+            let code = (response as? HTTPURLResponse)?.statusCode ?? 0
+            throw APIError.serverError(statusCode: code)
+        }
+
+        return try JSONDecoder().decode(TradesResponse.self, from: data).data
+    }
 }
 
 enum APIError: LocalizedError {

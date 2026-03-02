@@ -33,7 +33,11 @@ struct ContentView: View {
             Section("Performance") {
                 row("Profit", value: formatUsdc(stats.totalProfitUsdc),
                     color: stats.totalProfitUsdc >= 0 ? .green : .red, bold: true)
-                row("Trades", value: "\(stats.tradeCount)")
+                NavigationLink {
+                    TradesView()
+                } label: {
+                    row("Trades", value: "\(stats.tradeCount)")
+                }
             }
 
             Section("Orders") {
@@ -100,12 +104,4 @@ private func formatUsdc(_ value: Double) -> String {
 
 private func formatBtc(_ value: Double) -> String {
     String(format: "%.6f BTC", value)
-}
-
-private func formatRelativeDate(_ iso: String) -> String {
-    let formatter = ISO8601DateFormatter()
-    guard let date = formatter.date(from: iso) else { return iso }
-    let relative = RelativeDateTimeFormatter()
-    relative.unitsStyle = .abbreviated
-    return relative.localizedString(for: date, relativeTo: .now)
 }
