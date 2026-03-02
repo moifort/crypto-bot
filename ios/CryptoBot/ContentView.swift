@@ -23,6 +23,18 @@ struct ContentView: View {
                 }
             }
             .navigationTitle("CryptoBot")
+            .toolbar {
+                if stats?.sandboxMode == true {
+                    ToolbarItem(placement: .topBarTrailing) {
+                        Text("Sandbox")
+                            .font(.caption).fontWeight(.semibold)
+                            .padding(.horizontal, 8).padding(.vertical, 4)
+                            .background(.orange.opacity(0.15))
+                            .foregroundStyle(.orange)
+                            .clipShape(.capsule)
+                    }
+                }
+            }
             .refreshable { await loadStats() }
             .task { await loadStats() }
         }

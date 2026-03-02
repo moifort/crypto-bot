@@ -90,23 +90,36 @@ export const getBalance = async (): Promise<KrakenBalance> => {
   }
 }
 
-export const placeOrder = async (
+export const validateOrder = async (
   side: OrderSide,
   price: BtcPriceType,
   volume: BtcType,
-): Promise<KrakenOrderResult> => {
-  const { sandboxMode } = config()
-  const params: Record<string, string> = {
+): Promise<{ description: string }> => {
+  const result = await privateRequest('AddOrder', {
     pair: PAIR,
     type: side,
     ordertype: 'limit',
     price: Number(price).toFixed(1),
     volume: Number(volume).toFixed(8),
-  }
-  if (sandboxMode) params.validate = 'true'
-  const result = await privateRequest('AddOrder', params)
+    validate: 'true',
+  })
+  return { description: result.descr.order }
+}
+
+export const placeOrder = async (
+  side: OrderSide,
+  price: BtcPriceType,
+  volume: BtcType,
+): Promise<KrakenOrderResult> => {
+  const result = await privateRequest('AddOrder', {
+    pair: PAIR,
+    type: side,
+    ordertype: 'limit',
+    price: Number(price).toFixed(1),
+    volume: Number(volume).toFixed(8),
+  })
   return {
-    orderId: KrakenOrderIdPrimitive(sandboxMode ? `sandbox-${Date.now()}` : result.txid[0]),
+    orderId: KrakenOrderIdPrimitive(result.txid[0]),
     description: result.descr.order,
   }
 }

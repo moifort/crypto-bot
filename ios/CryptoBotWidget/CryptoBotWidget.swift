@@ -108,11 +108,18 @@ struct SmallWidgetView: View {
                 .font(.caption)
                 .foregroundStyle(.secondary)
 
-                if let relative = formatRelativeDate(stats.lastCycleAt) {
-                    Text(relative)
-                        .font(.caption2)
-                        .foregroundStyle(.tertiary)
-
+                HStack {
+                    if let relative = formatRelativeDate(stats.lastCycleAt) {
+                        Text(relative)
+                            .font(.caption2)
+                            .foregroundStyle(.tertiary)
+                    }
+                    if stats.sandboxMode {
+                        Spacer()
+                        Text("SANDBOX")
+                            .font(.system(size: 8, weight: .bold))
+                            .foregroundStyle(.orange)
+                    }
                 }
             }
             .frame(maxWidth: .infinity, alignment: .leading)
@@ -171,6 +178,12 @@ struct MediumWidgetView: View {
                     .foregroundStyle(.secondary)
 
                     Spacer()
+
+                    if stats.sandboxMode {
+                        Text("SANDBOX")
+                            .font(.system(size: 8, weight: .bold))
+                            .foregroundStyle(.orange)
+                    }
 
                     if let relative = formatRelativeDate(stats.lastCycleAt) {
                         Text(relative)

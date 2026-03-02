@@ -1,4 +1,4 @@
-import * as kraken from '~/domain/exchange/kraken'
+import * as exchange from '~/domain/exchange'
 import { Btc, BtcPrice, nowTimestamp, SignedUsdc, Usdc } from '~/domain/shared/primitives'
 import type { BtcPrice as BtcPriceType } from '~/domain/shared/types'
 import { GridLevel, randomGridId, randomOrderId, randomTradeId } from '~/domain/trading/primitives'
@@ -36,7 +36,7 @@ export namespace TradingCommand {
     const gridConfig = await repository.getGridConfig()
     if (!gridConfig) throw new Error('Grid not initialized')
 
-    const ticker = await kraken.getTicker()
+    const ticker = await exchange.getTicker()
     const currentPrice = ticker.last
     console.log(`[cycle] BTC/USDC price: ${currentPrice}`)
 
@@ -45,40 +45,16 @@ export namespace TradingCommand {
     await repository.saveLastCycleAt(nowTimestamp())
   }
 
-  const reconcileOrders = async (currentPrice: BtcPriceType) => {
+  const reconcileOrders = async (_currentPrice: BtcPriceType) => {
     const orders = await repository.findAllOrders()
     const openOrders = orders.filter((order) => order.status === 'open')
     if (openOrders.length === 0) return
-
-    const { sandboxMode } = config()
-
-    if (sandboxMode) {
-      const filledOrders = openOrders.filter(
-        (order) =>
-          (order.side === 'buy' && currentPrice <= order.price) ||
-          (order.side === 'sell' && currentPrice >= order.price),
-      )
-      await Promise.all(
-        filledOrders.map(async (order) => {
-          const fee = Usdc(Number(order.sizeUsdc) * 0.0025)
-          await repository.saveOrder({
-            ...order,
-            status: 'filled',
-            fee,
-            updatedAt: nowTimestamp(),
-          })
-          console.log(`[cycle] Sandbox fill: ${order.side} at ${order.price}`)
-          await matchTrade({ ...order, fee })
-        }),
-      )
-      return
-    }
 
     const krakenOrders = openOrders.filter((order) => order.krakenOrderId)
     const krakenOrderIds = krakenOrders
       .map((order) => order.krakenOrderId)
       .filter((id): id is NonNullable<typeof id> => id !== undefined)
-    const krakenInfos = await kraken.queryOrders(krakenOrderIds)
+    const krakenInfos = await exchange.queryOrders(krakenOrderIds)
 
     for (const info of krakenInfos) {
       const order = krakenOrders.find((o) => o.krakenOrderId === info.orderId)
@@ -181,7 +157,7 @@ export namespace TradingCommand {
       const sizeBtc = Number(gridConfig.orderSizeUsdc) / price
 
       try {
-        const result = await kraken.placeOrder(side, BtcPrice(price), Btc(sizeBtc))
+        const result = await exchange.placeOrder(side, BtcPrice(price), Btc(sizeBtc))
         const order: GridOrder = {
           id: randomOrderId(),
           gridId: gridConfig.id,
