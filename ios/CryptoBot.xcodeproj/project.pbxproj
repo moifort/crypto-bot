@@ -46,6 +46,7 @@
 				Shared/APIClient.swift,
 				Shared/Secrets.swift,
 				Shared/StatsResponse.swift,
+				Shared/TradesResponse.swift,
 			);
 			target = 408BDC2A2D6D000000000009 /* CryptoBotWidgetExtension */;
 		};
