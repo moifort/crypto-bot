@@ -28,7 +28,7 @@ export type GridOrder = {
   sizeUsdc: Usdc
   sizeBtc: Btc
   level: GridLevel
-  status: 'pending' | 'open' | 'filled' | 'cancelled'
+  status: 'pending' | 'open' | 'filled' | 'cancelled' | 'traded'
   fee?: Usdc
   createdAt: Timestamp
   updatedAt: Timestamp

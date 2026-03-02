@@ -14,6 +14,9 @@ export namespace TradingCommand {
     if (existing) return existing
 
     const { gridLowerPrice, gridUpperPrice, gridLevels, orderSizeUsdc } = config()
+    if (gridLevels < 2) throw new Error('gridLevels must be >= 2')
+    if (gridLowerPrice >= gridUpperPrice)
+      throw new Error('gridLowerPrice must be less than gridUpperPrice')
     const spacing = BtcPrice((Number(gridUpperPrice) - Number(gridLowerPrice)) / (gridLevels - 1))
 
     const gridConfig: GridConfig = {
@@ -98,10 +101,20 @@ export namespace TradingCommand {
   }
 
   const matchTrade = async (filledOrder: GridOrder) => {
+    // Boundary levels cannot match (sell at level 0 has no buy below, buy at max has no sell above)
+    if (filledOrder.side === 'sell' && filledOrder.level === 0) return
+
     const allOrders = await repository.findAllOrders()
+
+    // Buy at level N matches with sell at level N+1 (profit = spacing - fees)
+    const matchingLevel =
+      filledOrder.side === 'buy'
+        ? GridLevel(filledOrder.level + 1) // look for sell one level above
+        : GridLevel(filledOrder.level - 1) // look for buy one level below
     const oppositeSide = filledOrder.side === 'buy' ? 'sell' : 'buy'
+
     const matchingOrder = allOrders.find(
-      (o) => o.side === oppositeSide && o.status === 'filled' && o.level === filledOrder.level,
+      (o) => o.side === oppositeSide && o.status === 'filled' && o.level === matchingLevel,
     )
     if (!matchingOrder) return
 
@@ -124,6 +137,11 @@ export namespace TradingCommand {
       feeUsdc,
       completedAt: nowTimestamp(),
     })
+
+    // Mark both orders as traded to prevent double-matching
+    await repository.saveOrder({ ...buyOrder, status: 'traded', updatedAt: nowTimestamp() })
+    await repository.saveOrder({ ...sellOrder, status: 'traded', updatedAt: nowTimestamp() })
+
     console.log(`[cycle] Trade completed: buy@${buyOrder.price} -> sell@${sellOrder.price}`)
   }
 
