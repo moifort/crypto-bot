@@ -37,7 +37,10 @@ export namespace TradingCommand {
 
   export const executeCycle = async () => {
     const gridConfig = await repository.getGridConfig()
-    if (!gridConfig) throw new Error('Grid not initialized')
+    if (!gridConfig) {
+      log.warn('Grid not initialized yet, skipping cycle')
+      return
+    }
 
     const ticker = await exchange.getTicker()
     const currentPrice = ticker.last

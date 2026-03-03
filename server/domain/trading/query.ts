@@ -46,7 +46,7 @@ export namespace TradingQuery {
 
   export const getStats = async () => {
     const gridConfig = await repository.getGridConfig()
-    if (!gridConfig) throw new Error('Grid not initialized')
+    if (!gridConfig) throw createError({ statusCode: 404, message: 'Grid not initialized' })
 
     const [trades, orders, ticker, balance, lastCycleAt] = await Promise.all([
       repository.findAllTrades(),
