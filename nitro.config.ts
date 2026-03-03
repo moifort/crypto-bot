@@ -23,5 +23,6 @@ export default defineNitroConfig({
     orders: { driver: 'fs', base: './.data/db/orders' },
     trades: { driver: 'fs', base: './.data/db/trades' },
     snapshots: { driver: 'fs', base: './.data/db/snapshots' },
+    'migration-meta': { driver: 'fs', base: './.data/db/migration-meta' },
   },
 })
