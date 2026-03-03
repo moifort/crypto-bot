@@ -21,6 +21,7 @@ type KrakenRawOrder = {
 
 const KRAKEN_BASE_URL = 'https://api.kraken.com'
 const PAIR = 'XBTUSDC'
+const FETCH_TIMEOUT_MS = 10_000
 
 const getSignature = async (path: string, nonce: number, postData: string) => {
   const { krakenPrivateKey } = config()
@@ -44,7 +45,9 @@ const getSignature = async (path: string, nonce: number, postData: string) => {
 }
 
 const publicRequest = async (endpoint: string) => {
-  const response = await fetch(`${KRAKEN_BASE_URL}/0/public/${endpoint}`)
+  const response = await fetch(`${KRAKEN_BASE_URL}/0/public/${endpoint}`, {
+    signal: AbortSignal.timeout(FETCH_TIMEOUT_MS),
+  })
   if (!response.ok) throw new Error(`Kraken HTTP ${response.status}: ${response.statusText}`)
   const data = await response.json()
   if (data.error?.length > 0) throw new Error(`Kraken API error: ${data.error.join(', ')}`)
@@ -65,6 +68,7 @@ const privateRequest = async (endpoint: string, params: Record<string, string> =
       'Content-Type': 'application/x-www-form-urlencoded',
     },
     body: postData,
+    signal: AbortSignal.timeout(FETCH_TIMEOUT_MS),
   })
   if (!response.ok) throw new Error(`Kraken HTTP ${response.status}: ${response.statusText}`)
   const data = await response.json()
