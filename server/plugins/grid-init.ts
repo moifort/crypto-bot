@@ -1,9 +1,11 @@
 import { TradingCommand } from '~/domain/trading/command'
-import { log } from '~/system/logger'
+import { createLogger } from '~/system/logger'
+
+const log = createLogger('grid-init')
 
 export default defineNitroPlugin(async () => {
   const gridConfig = await TradingCommand.initializeGrid()
-  log.info('[grid-init] Grid initialized', {
+  log.info('Grid initialized', {
     id: gridConfig.id,
     lowerPrice: gridConfig.lowerPrice,
     upperPrice: gridConfig.upperPrice,

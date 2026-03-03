@@ -1,7 +1,9 @@
 import type { GridOrder } from '~/domain/trading/types'
-import { log } from '~/system/logger'
+import { createLogger } from '~/system/logger'
 import { MigrationName, MigrationVersion } from '../primitives'
 import type { Migration } from '../types'
+
+const log = createLogger('migration:0002')
 
 export const migration0002: Migration = {
   version: MigrationVersion(2),
@@ -10,7 +12,7 @@ export const migration0002: Migration = {
     const tradesStorage = ctx.storage('trades')
     const tradeKeys = await tradesStorage.getKeys()
     await Promise.all(tradeKeys.map((key) => tradesStorage.removeItem(key)))
-    log.info(`[migration:0002] Deleted ${tradeKeys.length} corrupted trades`)
+    log.info(`Deleted ${tradeKeys.length} corrupted trades`)
 
     const ordersStorage = ctx.storage('orders')
     const orderKeys = await ordersStorage.getKeys()
@@ -22,7 +24,7 @@ export const migration0002: Migration = {
     await Promise.all(
       filledOrders.map(async (order) => {
         await ordersStorage.setItem(order.id, { ...order, status: 'cancelled' })
-        log.info(`[migration:0002] Cancelled orphan filled order ${order.id}`)
+        log.info(`Cancelled orphan filled order ${order.id}`)
       }),
     )
 

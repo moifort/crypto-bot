@@ -1,8 +1,10 @@
 import { SignedUsdc } from '~/domain/shared/primitives'
 import type { CompletedTrade } from '~/domain/trading/types'
-import { log } from '~/system/logger'
+import { createLogger } from '~/system/logger'
 import { MigrationName, MigrationVersion } from '../primitives'
 import type { Migration } from '../types'
+
+const log = createLogger('migration:0001')
 
 export const migration0001: Migration = {
   version: MigrationVersion(1),
@@ -20,7 +22,7 @@ export const migration0001: Migration = {
           if (trade.profitUsdc === profit) return false
           await storage.setItem(trade.id, { ...trade, profitUsdc: SignedUsdc(profit) })
           log.info(
-            `[migration:0001] Trade ${trade.id}: ${trade.profitUsdc} -> ${profit} (buy@${trade.buyPrice} sell@${trade.sellPrice})`,
+            `Trade ${trade.id}: ${trade.profitUsdc} -> ${profit} (buy@${trade.buyPrice} sell@${trade.sellPrice})`,
           )
           return true
         }),

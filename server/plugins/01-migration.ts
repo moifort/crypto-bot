@@ -1,6 +1,8 @@
+import { createLogger } from '~/system/logger'
 import { migrations } from '~/system/migration/migrations'
 import { runMigrations } from '~/system/migration/runner'
-import { log } from '~/system/logger'
+
+const log = createLogger('migration')
 
 export default defineNitroPlugin(async () => {
   const results = await runMigrations(migrations)
@@ -12,6 +14,6 @@ export default defineNitroPlugin(async () => {
   }
 
   if (results.length > 0) {
-    log.info(`[migration] All ${results.length} migration(s) applied successfully`)
+    log.info(`All ${results.length} migration(s) applied successfully`)
   }
 })

@@ -1,7 +1,9 @@
 import { nowTimestamp } from '~/domain/shared/primitives'
-import { log } from '~/system/logger'
+import { createLogger } from '~/system/logger'
 import { MigrationVersion } from './primitives'
 import type { Migration, MigrationContext, MigrationMeta, MigrationResult } from './types'
+
+const log = createLogger('migration')
 
 const META_KEY = 'meta'
 
@@ -19,16 +21,16 @@ export const runMigrations = async (migrations: Migration[]): Promise<MigrationR
     .filter((m) => m.version > currentVersion)
 
   if (pending.length === 0) {
-    log.info('[migration] No pending migrations')
+    log.info('No pending migrations')
     return []
   }
 
-  log.info(`[migration] ${pending.length} pending migration(s)`)
+  log.info(`${pending.length} pending migration(s)`)
   const ctx = createContext()
   const results: MigrationResult[] = []
 
   for (const migration of pending) {
-    log.info(`[migration] Running #${migration.version}: ${migration.name}`)
+    log.info(`Running #${migration.version}: ${migration.name}`)
 
     let result: MigrationResult
     try {
@@ -41,7 +43,7 @@ export const runMigrations = async (migrations: Migration[]): Promise<MigrationR
     results.push(result)
 
     if (result.outcome === 'error') {
-      log.error(`[migration] Failed #${migration.version}: ${result.reason}`)
+      log.error(`Failed #${migration.version}: ${result.reason}`)
       break
     }
 
@@ -49,7 +51,7 @@ export const runMigrations = async (migrations: Migration[]): Promise<MigrationR
       currentVersion: migration.version,
       appliedAt: nowTimestamp(),
     })
-    log.info(`[migration] Completed #${migration.version} (${result.transformed} transformed)`)
+    log.info(`Completed #${migration.version} (${result.transformed} transformed)`)
   }
 
   return results
