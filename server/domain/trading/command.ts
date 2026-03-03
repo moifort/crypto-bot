@@ -5,6 +5,7 @@ import { GridLevel, randomGridId, randomOrderId, randomTradeId } from '~/domain/
 import * as repository from '~/domain/trading/repository'
 import type { GridConfig, GridOrder } from '~/domain/trading/types'
 import { config } from '~/system/config/index'
+import { log } from '~/system/logger'
 
 const MAX_OPEN_ORDERS = 20
 
@@ -38,7 +39,7 @@ export namespace TradingCommand {
 
     const ticker = await exchange.getTicker()
     const currentPrice = ticker.last
-    console.log(`[cycle] BTC/USDC price: ${currentPrice}`)
+    log.info(`[cycle] BTC/USDC price: ${currentPrice}`)
 
     await reconcileOrders(currentPrice)
     await placeGridOrders(gridConfig, currentPrice)
@@ -68,7 +69,7 @@ export namespace TradingCommand {
           updatedAt: nowTimestamp(),
         }
         await repository.saveOrder(updatedOrder)
-        console.log(`[cycle] Order filled: ${order.side} at ${order.price}`)
+        log.info(`[cycle] Order filled: ${order.side} at ${order.price}`)
         await matchTrade(updatedOrder)
       } else if (info.status === 'canceled' || info.status === 'expired') {
         await repository.saveOrder({ ...order, status: 'cancelled', updatedAt: nowTimestamp() })
@@ -118,7 +119,7 @@ export namespace TradingCommand {
     await repository.saveOrder({ ...buyOrder, status: 'traded', updatedAt: nowTimestamp() })
     await repository.saveOrder({ ...sellOrder, status: 'traded', updatedAt: nowTimestamp() })
 
-    console.log(`[cycle] Trade completed: buy@${buyOrder.price} -> sell@${sellOrder.price}`)
+    log.info(`[cycle] Trade completed: buy@${buyOrder.price} -> sell@${sellOrder.price}`)
   }
 
   const placeGridOrders = async (gridConfig: GridConfig, currentPrice: BtcPriceType) => {
@@ -128,7 +129,7 @@ export namespace TradingCommand {
     )
 
     if (activeOrders.length >= MAX_OPEN_ORDERS) {
-      console.log(`[cycle] Max open orders reached (${MAX_OPEN_ORDERS}), skipping`)
+      log.info(`[cycle] Max open orders reached (${MAX_OPEN_ORDERS}), skipping`)
       return
     }
 
@@ -172,10 +173,10 @@ export namespace TradingCommand {
           updatedAt: nowTimestamp(),
         }
         await repository.saveOrder(order)
-        console.log(`[cycle] Placed ${side} order at ${price} (${result.description})`)
+        log.info(`[cycle] Placed ${side} order at ${price} (${result.description})`)
       } catch (error) {
         const message = error instanceof Error ? error.message : String(error)
-        console.error(`[cycle] Failed to place ${side} order at ${price}: ${message}`)
+        log.error(`[cycle] Failed to place ${side} order at ${price}: ${message}`)
       }
     }
   }

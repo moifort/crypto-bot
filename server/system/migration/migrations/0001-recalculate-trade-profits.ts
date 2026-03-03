@@ -1,5 +1,6 @@
 import { SignedUsdc } from '~/domain/shared/primitives'
 import type { CompletedTrade } from '~/domain/trading/types'
+import { log } from '~/system/logger'
 import { MigrationName, MigrationVersion } from '../primitives'
 import type { Migration } from '../types'
 
@@ -18,7 +19,7 @@ export const migration0001: Migration = {
           const profit = (trade.sellPrice - trade.buyPrice) * trade.sizeBtc - trade.feeUsdc
           if (trade.profitUsdc === profit) return false
           await storage.setItem(trade.id, { ...trade, profitUsdc: SignedUsdc(profit) })
-          console.log(
+          log.info(
             `[migration:0001] Trade ${trade.id}: ${trade.profitUsdc} -> ${profit} (buy@${trade.buyPrice} sell@${trade.sellPrice})`,
           )
           return true

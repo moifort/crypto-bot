@@ -1,5 +1,6 @@
 import * as Sentry from '@sentry/bun'
 import { TradingCommand } from '~/domain/trading/command'
+import { log } from '~/system/logger'
 
 export default defineTask({
   meta: {
@@ -12,7 +13,7 @@ export default defineTask({
       return { result: 'ok' }
     } catch (error) {
       const message = error instanceof Error ? error.message : String(error)
-      console.error(`[task:cycle] Error: ${message}`)
+      log.error(`[task:cycle] Error: ${message}`)
       Sentry.captureException(error)
       return { result: 'error', error: message }
     }

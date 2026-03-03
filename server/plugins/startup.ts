@@ -1,8 +1,9 @@
 import { config } from '~/system/config/index'
+import { log } from '~/system/logger'
 
 export default defineNitroPlugin(() => {
   const cfg = config()
-  console.log('[startup] Crypto bot started', {
+  log.info('[startup] Crypto bot started', {
     gridLowerPrice: cfg.gridLowerPrice,
     gridUpperPrice: cfg.gridUpperPrice,
     gridLevels: cfg.gridLevels,
