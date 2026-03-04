@@ -34,6 +34,25 @@ export type GridOrder = {
   updatedAt: Timestamp
 }
 
+export type TradingError =
+  | { kind: 'grid-not-initialized' }
+  | { kind: 'invalid-config'; reason: string }
+
+export type StatsResult = {
+  totalProfitUsdc: SignedUsdc
+  totalFeesUsdc: Usdc
+  tradeCount: number
+  openBuyOrders: number
+  openSellOrders: number
+  balanceUsdc: Usdc
+  balanceBtc: Btc
+  currentPrice: BtcPrice
+  gridConfig: GridConfig
+  lastCycleAt: Timestamp | null | undefined
+  sandboxMode: boolean
+  sommeMiseUsdc: SignedUsdc
+}
+
 export type CompletedTrade = {
   id: TradeId
   buyOrderId: OrderId

@@ -11,7 +11,12 @@ export default defineTask({
   },
   async run() {
     try {
-      await TradingCommand.executeCycle()
+      const result = await TradingCommand.executeCycle()
+      if (result && 'kind' in result) {
+        log.error(`Cycle failed: ${result.kind}`)
+        Sentry.captureMessage(`Cycle failed: ${result.kind}`)
+        return { result: 'error', error: result.kind }
+      }
       return { result: 'ok' }
     } catch (error) {
       const message = error instanceof Error ? error.message : String(error)

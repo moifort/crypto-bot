@@ -3,7 +3,7 @@ import { Btc, BtcPrice, nowTimestamp, SignedUsdc, Usdc } from '~/domain/shared/p
 import type { BtcPrice as BtcPriceType } from '~/domain/shared/types'
 import { GridLevel, randomGridId, randomOrderId, randomTradeId } from '~/domain/trading/primitives'
 import * as repository from '~/domain/trading/repository'
-import type { GridConfig, GridOrder } from '~/domain/trading/types'
+import type { GridConfig, GridOrder, TradingError } from '~/domain/trading/types'
 import { config } from '~/system/config/index'
 import { createLogger } from '~/system/logger'
 
@@ -12,14 +12,14 @@ const log = createLogger('cycle')
 const MAX_OPEN_ORDERS = 20
 
 export namespace TradingCommand {
-  export const initializeGrid = async () => {
+  export const initializeGrid = async (): Promise<TradingError | GridConfig> => {
     const existing = await repository.getGridConfig()
     if (existing) return existing
 
     const { gridLowerPrice, gridUpperPrice, gridLevels, orderSizeUsdc } = config()
-    if (gridLevels < 2) throw new Error('gridLevels must be >= 2')
+    if (gridLevels < 2) return { kind: 'invalid-config', reason: 'gridLevels must be >= 2' }
     if (gridLowerPrice >= gridUpperPrice)
-      throw new Error('gridLowerPrice must be less than gridUpperPrice')
+      return { kind: 'invalid-config', reason: 'gridLowerPrice must be less than gridUpperPrice' }
     const spacing = BtcPrice((Number(gridUpperPrice) - Number(gridLowerPrice)) / (gridLevels - 1))
 
     const gridConfig: GridConfig = {
@@ -35,9 +35,9 @@ export namespace TradingCommand {
     return await repository.saveGridConfig(gridConfig)
   }
 
-  export const executeCycle = async () => {
+  export const executeCycle = async (): Promise<TradingError | undefined> => {
     const gridConfig = await repository.getGridConfig()
-    if (!gridConfig) throw new Error('Grid not initialized')
+    if (!gridConfig) return { kind: 'grid-not-initialized' }
 
     const ticker = await exchange.getTicker()
     const currentPrice = ticker.last
@@ -46,6 +46,7 @@ export namespace TradingCommand {
     await reconcileOrders(currentPrice)
     await placeGridOrders(gridConfig, currentPrice)
     await repository.saveLastCycleAt(nowTimestamp())
+    return undefined
   }
 
   const reconcileOrders = async (_currentPrice: BtcPriceType) => {
@@ -59,10 +60,12 @@ export namespace TradingCommand {
       .filter((id): id is NonNullable<typeof id> => id !== undefined)
     const krakenInfos = await exchange.queryOrders(krakenOrderIds)
 
-    for (const info of krakenInfos) {
-      const order = krakenOrders.find((o) => o.krakenOrderId === info.orderId)
-      if (!order) continue
+    const matchedInfos = krakenInfos
+      .map((info) => ({ info, order: krakenOrders.find((o) => o.krakenOrderId === info.orderId) }))
+      .filter((m): m is { info: typeof m.info; order: GridOrder } => m.order !== undefined)
 
+    await matchedInfos.reduce(async (prev, { info, order }) => {
+      await prev
       if (info.status === 'closed') {
         const updatedOrder: GridOrder = {
           ...order,
@@ -76,7 +79,7 @@ export namespace TradingCommand {
       } else if (info.status === 'canceled' || info.status === 'expired') {
         await repository.saveOrder({ ...order, status: 'cancelled', updatedAt: nowTimestamp() })
       }
-    }
+    }, Promise.resolve())
   }
 
   const matchTrade = async (filledOrder: GridOrder) => {
@@ -155,7 +158,8 @@ export namespace TradingCommand {
       )
       .slice(0, MAX_OPEN_ORDERS - activeOrders.length)
 
-    for (const { price, level } of levelsToPlace) {
+    await levelsToPlace.reduce(async (prev, { price, level }) => {
+      await prev
       const side = price < currentPriceNum ? 'buy' : 'sell'
       const sizeBtc = Number(gridConfig.orderSizeUsdc) / price
 
@@ -180,6 +184,6 @@ export namespace TradingCommand {
         const message = error instanceof Error ? error.message : String(error)
         log.error(`Failed to place ${side} order at ${price}: ${message}`)
       }
-    }
+    }, Promise.resolve())
   }
 }

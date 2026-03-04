@@ -1,6 +1,7 @@
 import * as exchange from '~/domain/exchange'
 import { SignedUsdc, Usdc } from '~/domain/shared/primitives'
 import * as repository from '~/domain/trading/repository'
+import type { StatsResult, TradingError } from '~/domain/trading/types'
 import { config } from '~/system/config/index'
 
 export namespace TradingQuery {
@@ -44,9 +45,9 @@ export namespace TradingQuery {
       }))
   }
 
-  export const getStats = async () => {
+  export const getStats = async (): Promise<TradingError | StatsResult> => {
     const gridConfig = await repository.getGridConfig()
-    if (!gridConfig) throw new Error('Grid not initialized')
+    if (!gridConfig) return { kind: 'grid-not-initialized' }
 
     const [trades, orders, ticker, balance, lastCycleAt] = await Promise.all([
       repository.findAllTrades(),

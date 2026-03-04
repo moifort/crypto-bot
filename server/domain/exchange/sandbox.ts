@@ -54,26 +54,25 @@ export const queryOrders = async (orderIds: KrakenOrderId[]): Promise<KrakenOrde
   const [ticker, allOrders] = await Promise.all([kraken.getTicker(), repository.findAllOrders()])
   const currentPrice = Number(ticker.last)
 
-  const results: KrakenOrderInfo[] = []
-  for (const id of orderIds) {
-    const order = allOrders.find((o) => o.krakenOrderId === id)
-    if (!order) continue
-
-    const filled =
-      (order.side === 'buy' && currentPrice <= Number(order.price)) ||
-      (order.side === 'sell' && currentPrice >= Number(order.price))
-
-    results.push({
-      orderId: id,
-      status: filled ? 'closed' : 'open',
-      side: order.side,
-      price: order.price,
-      volume: order.sizeBtc,
-      volumeExecuted: filled ? order.sizeBtc : Btc(0),
-      fee: filled ? Usdc(Number(order.sizeUsdc) * 0.0025) : Usdc(0),
+  return orderIds
+    .map((id) => ({ id, order: allOrders.find((o) => o.krakenOrderId === id) }))
+    .filter(
+      (m): m is { id: KrakenOrderId; order: NonNullable<typeof m.order> } => m.order !== undefined,
+    )
+    .map(({ id, order }) => {
+      const filled =
+        (order.side === 'buy' && currentPrice <= Number(order.price)) ||
+        (order.side === 'sell' && currentPrice >= Number(order.price))
+      return {
+        orderId: id,
+        status: filled ? ('closed' as const) : ('open' as const),
+        side: order.side,
+        price: order.price,
+        volume: order.sizeBtc,
+        volumeExecuted: filled ? order.sizeBtc : Btc(0),
+        fee: filled ? Usdc(Number(order.sizeUsdc) * 0.0025) : Usdc(0),
+      }
     })
-  }
-  return results
 }
 
 export const getOpenOrders = async (): Promise<KrakenOrderInfo[]> => {

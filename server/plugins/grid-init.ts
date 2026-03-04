@@ -4,12 +4,18 @@ import { createLogger } from '~/system/logger'
 const log = createLogger('grid-init')
 
 export default defineNitroPlugin(async () => {
-  const gridConfig = await TradingCommand.initializeGrid()
+  const result = await TradingCommand.initializeGrid()
+  if ('kind' in result) {
+    log.error(
+      `Grid initialization failed: ${result.kind === 'invalid-config' ? result.reason : result.kind}`,
+    )
+    return
+  }
   log.info('Grid initialized', {
-    id: gridConfig.id,
-    lowerPrice: gridConfig.lowerPrice,
-    upperPrice: gridConfig.upperPrice,
-    levels: gridConfig.levels,
-    spacing: gridConfig.spacing,
+    id: result.id,
+    lowerPrice: result.lowerPrice,
+    upperPrice: result.upperPrice,
+    levels: result.levels,
+    spacing: result.spacing,
   })
 })
