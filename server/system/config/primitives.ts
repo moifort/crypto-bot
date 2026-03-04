@@ -23,6 +23,6 @@ export const ApiToken = (value: unknown) => {
 }
 
 export const SentryDsn = (value: unknown) => {
-  const v = z.string().min(1).parse(value)
+  const v = z.string().url().parse(value)
   return make<SentryDsnType>()(v)
 }
