@@ -4,6 +4,18 @@ import { createLogger } from '~/system/logger'
 
 const log = createLogger('task:cycle')
 
+const isTransientNetworkError = (error: unknown): boolean => {
+  if (!(error instanceof Error)) return false
+  const msg = error.message.toLowerCase()
+  return (
+    msg.includes('unable to connect') ||
+    msg.includes('failed to fetch') ||
+    msg.includes('econnrefused') ||
+    msg.includes('enotfound') ||
+    error.name === 'TimeoutError'
+  )
+}
+
 export default defineTask({
   meta: {
     name: 'trading:cycle',
@@ -16,7 +28,9 @@ export default defineTask({
     } catch (error) {
       const message = error instanceof Error ? error.message : String(error)
       log.error(`Error: ${message}`)
-      Sentry.captureException(error)
+      if (!isTransientNetworkError(error)) {
+        Sentry.captureException(error)
+      }
       return { result: 'error', error: message }
     }
   },
