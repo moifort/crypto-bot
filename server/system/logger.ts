@@ -2,7 +2,6 @@ import { consola } from 'consola'
 
 consola.options.formatOptions.date = true
 consola.options.formatOptions.colors = true
-consola.options.formatOptions.columns = consola.options.formatOptions.columns ?? 100
 consola.options.reporters
   .filter((reporter) => 'formatDate' in reporter)
   .forEach((reporter) => {
