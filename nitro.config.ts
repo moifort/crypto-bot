@@ -1,6 +1,7 @@
 export default defineNitroConfig({
   compatibilityDate: '2026-02-23',
   srcDir: 'server',
+  ignore: ['test/**', '**/*.test.ts'],
   experimental: {
     tasks: true,
   },
