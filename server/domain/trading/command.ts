@@ -10,7 +10,13 @@ import {
   randomTradeId,
 } from '~/domain/trading/primitives'
 import * as repository from '~/domain/trading/repository'
-import type { GridConfig, GridOrder, TradingError, VolatilityInfo } from '~/domain/trading/types'
+import type {
+  GridConfig,
+  GridOrder,
+  TradingError,
+  TradingState,
+  VolatilityInfo,
+} from '~/domain/trading/types'
 import { config } from '~/system/config/index'
 import { createLogger } from '~/system/logger'
 
@@ -45,12 +51,26 @@ export namespace TradingCommand {
   }
 
   export const executeCycle = async (): Promise<TradingError | undefined> => {
+    const tradingState = await repository.getTradingState()
+    if (tradingState !== 'active') {
+      return { kind: 'trading-stopped', reason: tradingState }
+    }
+
     let gridConfig = await repository.getGridConfig()
     if (!gridConfig) return { kind: 'grid-not-initialized' }
 
     const ticker = await exchange.getTicker()
     const currentPrice = ticker.last
     log.info(`BTC/USDC price: ${currentPrice}`)
+
+    const safeguardResult = await checkSafeguards(currentPrice)
+    if (safeguardResult !== 'continue') {
+      await stopTrading(safeguardResult === 'stop-loss' ? 'stopped-loss' : 'stopped-profit')
+      return {
+        kind: 'trading-stopped',
+        reason: safeguardResult === 'stop-loss' ? 'stopped-loss' : 'stopped-profit',
+      }
+    }
 
     if (shouldRecenter(gridConfig, currentPrice)) {
       await recenterGrid(gridConfig, currentPrice)
@@ -64,6 +84,72 @@ export namespace TradingCommand {
     await placeGridOrders(gridConfig, currentPrice)
     await repository.saveLastCycleAt(nowTimestamp())
     return undefined
+  }
+
+  const checkSafeguards = async (
+    currentPrice: BtcPriceType,
+  ): Promise<'continue' | 'stop-loss' | 'take-profit'> => {
+    const { stopLossPercent, takeProfitUsdc } = config()
+
+    // Check stop-loss via high watermark
+    if (stopLossPercent > 0) {
+      const balance = await exchange.getBalance()
+      const portfolioValue = Usdc(Number(balance.usdc) + Number(balance.btc) * Number(currentPrice))
+      const highWatermark = await repository.getHighWatermark()
+
+      if (!highWatermark || Number(portfolioValue) > Number(highWatermark)) {
+        await repository.saveHighWatermark(portfolioValue)
+      }
+
+      const currentHighWatermark = highWatermark
+        ? Number(portfolioValue) > Number(highWatermark)
+          ? portfolioValue
+          : highWatermark
+        : portfolioValue
+
+      const drawdown =
+        (Number(currentHighWatermark) - Number(portfolioValue)) / Number(currentHighWatermark)
+      if (drawdown >= stopLossPercent / 100) {
+        log.info(
+          `Stop-loss triggered: portfolio ${portfolioValue} dropped ${(drawdown * 100).toFixed(1)}% from peak ${currentHighWatermark}`,
+        )
+        return 'stop-loss'
+      }
+    }
+
+    // Check take-profit
+    if (takeProfitUsdc > 0) {
+      const trades = await repository.findAllTrades()
+      const totalProfit = trades.reduce((sum, t) => sum + Number(t.profitUsdc), 0)
+      if (totalProfit >= takeProfitUsdc) {
+        log.info(`Take-profit triggered: profit $${totalProfit.toFixed(2)} >= $${takeProfitUsdc}`)
+        return 'take-profit'
+      }
+    }
+
+    return 'continue'
+  }
+
+  const stopTrading = async (reason: TradingState) => {
+    log.info(`Stopping trading: ${reason}`)
+
+    const allOrders = await repository.findAllOrders()
+    const openOrders = allOrders.filter((o) => o.status === 'open' || o.status === 'pending')
+
+    await openOrders.reduce(async (prev, order) => {
+      await prev
+      if (order.krakenOrderId) {
+        await exchange.cancelOrder(order.krakenOrderId)
+      }
+      await repository.saveOrder({ ...order, status: 'cancelled', updatedAt: nowTimestamp() })
+    }, Promise.resolve())
+
+    await repository.saveTradingState(reason)
+  }
+
+  export const resumeTrading = async (): Promise<void> => {
+    await repository.saveTradingState('active')
+    log.info('Trading resumed')
   }
 
   export const shouldRecenter = (gridConfig: GridConfig, currentPrice: BtcPriceType): boolean => {

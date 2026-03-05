@@ -383,3 +383,22 @@ describe('adjustSpacing', () => {
     expect(Number(spacing)).toBe(5000)
   })
 })
+
+describe('trading state', () => {
+  test('stops cycle when trading state is stopped-loss', async () => {
+    await repository.saveTradingState('stopped-loss')
+    const gridConfig = makeGridConfig()
+    await repository.saveGridConfig(gridConfig)
+
+    const result = await TradingCommand.executeCycle()
+    expect(result).toEqual({ kind: 'trading-stopped', reason: 'stopped-loss' })
+  })
+
+  test('resumes trading', async () => {
+    await repository.saveTradingState('stopped-loss')
+    await TradingCommand.resumeTrading()
+
+    const state = await repository.getTradingState()
+    expect(state).toBe('active')
+  })
+})

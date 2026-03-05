@@ -1,9 +1,10 @@
-import type { Timestamp } from '~/domain/shared/types'
+import type { Timestamp, Usdc } from '~/domain/shared/types'
 import type {
   CompletedTrade,
   GridConfig,
   GridOrder,
   OrderId,
+  TradingState,
   VolatilityInfo,
 } from '~/domain/trading/types'
 
@@ -66,4 +67,23 @@ export const getVolatilityInfo = () => snapshotsStorage().getItem<VolatilityInfo
 export const saveVolatilityInfo = async (info: VolatilityInfo) => {
   await snapshotsStorage().setItem<VolatilityInfo>('volatility', info)
   return info
+}
+
+// Trading state
+export const getTradingState = async (): Promise<TradingState> => {
+  const state = await snapshotsStorage().getItem<TradingState>('trading-state')
+  return state ?? 'active'
+}
+
+export const saveTradingState = async (state: TradingState) => {
+  await snapshotsStorage().setItem<TradingState>('trading-state', state)
+  return state
+}
+
+// High watermark
+export const getHighWatermark = () => snapshotsStorage().getItem<Usdc>('high-watermark')
+
+export const saveHighWatermark = async (value: Usdc) => {
+  await snapshotsStorage().setItem<Usdc>('high-watermark', value)
+  return value
 }

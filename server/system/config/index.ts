@@ -17,6 +17,8 @@ export const config = () => {
     atrPeriod: Number(runtimeConfig.atrPeriod || '14'),
     spacingMinMultiplier: Number(runtimeConfig.spacingMinMultiplier || '0.5'),
     spacingMaxMultiplier: Number(runtimeConfig.spacingMaxMultiplier || '2.0'),
+    stopLossPercent: Number(runtimeConfig.stopLossPercent || '0'),
+    takeProfitUsdc: Number(runtimeConfig.takeProfitUsdc || '0'),
     sentryDsn: runtimeConfig.sentryDsn ? SentryDsn(runtimeConfig.sentryDsn) : undefined,
   }
 }

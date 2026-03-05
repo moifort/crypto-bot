@@ -20,6 +20,15 @@ struct StatsData: Codable, Sendable {
     let sommeMiseUsdc: Double
 }
 
+struct TradingStateResponse: Codable, Sendable {
+    let status: Int
+    let data: TradingStateData
+}
+
+struct TradingStateData: Codable, Sendable {
+    let state: String
+}
+
 struct GridConfig: Codable, Sendable {
     let id: String
     let lowerPrice: Double

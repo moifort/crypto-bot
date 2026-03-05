@@ -9,6 +9,7 @@ export type GridLevel = Brand<number, 'GridLevel'>
 export type GridVersion = Brand<number, 'GridVersion'>
 
 export type OrderSide = 'buy' | 'sell'
+export type TradingState = 'active' | 'stopped-loss' | 'stopped-profit'
 
 export type GridConfig = {
   id: GridId
@@ -41,6 +42,7 @@ export type TradingError =
   | { kind: 'grid-not-initialized' }
   | { kind: 'invalid-config'; reason: string }
   | { kind: 'recenter-in-progress' }
+  | { kind: 'trading-stopped'; reason: TradingState }
 
 export type StatsResult = {
   totalProfitUsdc: SignedUsdc

@@ -2,8 +2,10 @@ import SwiftUI
 
 struct ContentView: View {
     @State private var stats: StatsData?
+    @State private var tradingState: TradingStateData?
     @State private var error: String?
     @State private var loading = false
+    @State private var resuming = false
 
     var body: some View {
         NavigationStack {
@@ -80,8 +82,28 @@ struct ContentView: View {
                 }
             }
 
-            if let lastCycle = stats.lastCycleAt {
-                Section("Status") {
+            Section("Status") {
+                if let tradingState {
+                    row("State", value: tradingState.state,
+                        color: tradingState.state == "active" ? .green : .red, bold: true)
+                    if tradingState.state != "active" {
+                        Button {
+                            Task { await resumeTrading() }
+                        } label: {
+                            HStack {
+                                Spacer()
+                                if resuming {
+                                    ProgressView()
+                                } else {
+                                    Text("Resume Trading")
+                                }
+                                Spacer()
+                            }
+                        }
+                        .disabled(resuming)
+                    }
+                }
+                if let lastCycle = stats.lastCycleAt {
                     row("Last Cycle", value: formatRelativeDate(lastCycle))
                 }
             }
@@ -113,10 +135,23 @@ struct ContentView: View {
         loading = true
         defer { loading = false }
         do {
-            stats = try await APIClient.fetchStats()
+            async let statsTask = APIClient.fetchStats()
+            async let stateTask = APIClient.fetchTradingState()
+            stats = try await statsTask
+            tradingState = try await stateTask
             error = nil
         } catch {
             self.stats = nil
+            self.error = error.localizedDescription
+        }
+    }
+
+    private func resumeTrading() async {
+        resuming = true
+        defer { resuming = false }
+        do {
+            tradingState = try await APIClient.resumeTrading()
+        } catch {
             self.error = error.localizedDescription
         }
     }

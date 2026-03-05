@@ -79,6 +79,8 @@ globalThis.useRuntimeConfig = () => ({
   atrPeriod: '',
   spacingMinMultiplier: '',
   spacingMaxMultiplier: '',
+  stopLossPercent: '',
+  takeProfitUsdc: '',
   sentryDsn: '',
 })
 
@@ -148,6 +150,8 @@ mock.module('~/system/config/index', () => ({
     atrPeriod: 14,
     spacingMinMultiplier: 0.5,
     spacingMaxMultiplier: 2.0,
+    stopLossPercent: 0,
+    takeProfitUsdc: 0,
     sentryDsn: undefined,
   }),
 }))

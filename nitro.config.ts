@@ -21,6 +21,8 @@ export default defineNitroConfig({
     atrPeriod: '',
     spacingMinMultiplier: '',
     spacingMaxMultiplier: '',
+    stopLossPercent: '',
+    takeProfitUsdc: '',
     sentryDsn: '',
   },
   storage: {
