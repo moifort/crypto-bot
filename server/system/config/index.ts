@@ -12,6 +12,7 @@ export const config = () => {
     gridLevels: Number(runtimeConfig.gridLevels),
     orderSizeUsdc: Usdc(runtimeConfig.orderSizeUsdc),
     sandboxMode: String(runtimeConfig.sandboxMode) === 'true',
+    postOnly: String(runtimeConfig.postOnly ?? 'true') !== 'false',
     sentryDsn: runtimeConfig.sentryDsn ? SentryDsn(runtimeConfig.sentryDsn) : undefined,
   }
 }

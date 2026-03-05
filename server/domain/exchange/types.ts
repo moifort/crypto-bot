@@ -21,10 +21,9 @@ export type KrakenBalance = {
   btc: Btc
 }
 
-export type KrakenOrderResult = {
-  orderId: KrakenOrderId
-  description: string
-}
+export type KrakenOrderResult =
+  | { kind: 'placed'; orderId: KrakenOrderId; description: string }
+  | { kind: 'post-only-rejected' }
 
 export type KrakenOrderStatus = 'pending' | 'open' | 'closed' | 'canceled' | 'expired'
 

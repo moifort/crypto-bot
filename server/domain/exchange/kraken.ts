@@ -115,16 +115,29 @@ export const placeOrder = async (
   price: BtcPriceType,
   volume: BtcType,
 ): Promise<KrakenOrderResult> => {
-  const result = await privateRequest('AddOrder', {
+  const { postOnly } = config()
+  const params: Record<string, string> = {
     pair: PAIR,
     type: side,
     ordertype: 'limit',
     price: Number(price).toFixed(1),
     volume: Number(volume).toFixed(8),
-  })
-  return {
-    orderId: KrakenOrderIdPrimitive(result.txid[0]),
-    description: result.descr.order,
+  }
+  if (postOnly) params.oflags = 'post'
+
+  try {
+    const result = await privateRequest('AddOrder', params)
+    return {
+      kind: 'placed',
+      orderId: KrakenOrderIdPrimitive(result.txid[0]),
+      description: result.descr.order,
+    }
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error)
+    if (postOnly && message.includes('EOrder:Post only order')) {
+      return { kind: 'post-only-rejected' }
+    }
+    throw error
   }
 }
 

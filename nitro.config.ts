@@ -16,6 +16,7 @@ export default defineNitroConfig({
     gridLevels: '',
     orderSizeUsdc: '',
     sandboxMode: '',
+    postOnly: '',
     sentryDsn: '',
   },
   storage: {

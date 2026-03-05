@@ -44,6 +44,7 @@ export const placeOrder = async (
 ): Promise<KrakenOrderResult> => {
   const { description } = await kraken.validateOrder(side, price, volume)
   return {
+    kind: 'placed',
     orderId: KrakenOrderIdPrimitive(`sandbox-${Date.now()}`),
     description,
   }

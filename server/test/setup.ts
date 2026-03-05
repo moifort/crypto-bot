@@ -74,6 +74,7 @@ globalThis.useRuntimeConfig = () => ({
   gridLevels: '5',
   orderSizeUsdc: '100',
   sandboxMode: 'true',
+  postOnly: 'true',
   sentryDsn: '',
 })
 
@@ -109,7 +110,9 @@ mock.module('~/system/logger', () => ({
 export const exchangeMocks = {
   getTicker: mock(() => Promise.resolve({ ask: 100100, bid: 99900, last: 100000 })),
   getBalance: mock(() => Promise.resolve({ usdc: 5000, btc: 0.1 })),
-  placeOrder: mock(() => Promise.resolve({ orderId: 'KRAKEN-001', description: 'test' })),
+  placeOrder: mock(() =>
+    Promise.resolve({ kind: 'placed', orderId: 'KRAKEN-001', description: 'test' }),
+  ),
   queryOrders: mock(() => Promise.resolve([] as unknown[])),
   getOpenOrders: mock(() => Promise.resolve([] as unknown[])),
   cancelOrder: mock(() => Promise.resolve()),
@@ -134,6 +137,7 @@ mock.module('~/system/config/index', () => ({
     gridLevels: 5,
     orderSizeUsdc: 100,
     sandboxMode: true,
+    postOnly: true,
     sentryDsn: undefined,
   }),
 }))
