@@ -1,4 +1,5 @@
 import * as exchange from '~/domain/exchange'
+import type { OHLCCandle } from '~/domain/exchange/types'
 import { Btc, BtcPrice, nowTimestamp, SignedUsdc, Usdc } from '~/domain/shared/primitives'
 import type { BtcPrice as BtcPriceType } from '~/domain/shared/types'
 import {
@@ -9,13 +10,14 @@ import {
   randomTradeId,
 } from '~/domain/trading/primitives'
 import * as repository from '~/domain/trading/repository'
-import type { GridConfig, GridOrder, TradingError } from '~/domain/trading/types'
+import type { GridConfig, GridOrder, TradingError, VolatilityInfo } from '~/domain/trading/types'
 import { config } from '~/system/config/index'
 import { createLogger } from '~/system/logger'
 
 const log = createLogger('cycle')
 
 const MAX_OPEN_ORDERS = 20
+const VOLATILITY_UPDATE_CYCLES = 60
 
 export namespace TradingCommand {
   export const initializeGrid = async (): Promise<TradingError | GridConfig> => {
@@ -43,7 +45,7 @@ export namespace TradingCommand {
   }
 
   export const executeCycle = async (): Promise<TradingError | undefined> => {
-    const gridConfig = await repository.getGridConfig()
+    let gridConfig = await repository.getGridConfig()
     if (!gridConfig) return { kind: 'grid-not-initialized' }
 
     const ticker = await exchange.getTicker()
@@ -55,6 +57,8 @@ export namespace TradingCommand {
       await repository.saveLastCycleAt(nowTimestamp())
       return { kind: 'recenter-in-progress' }
     }
+
+    gridConfig = await maybeUpdateVolatility(gridConfig)
 
     await reconcileOrders(currentPrice)
     await placeGridOrders(gridConfig, currentPrice)
@@ -117,7 +121,101 @@ export namespace TradingCommand {
     }
 
     await repository.saveGridConfig(newConfig)
+
+    // Recalculate reference ATR on recenter
+    const { volatilityEnabled } = config()
+    if (volatilityEnabled) {
+      await updateVolatilityInfo(newConfig, true)
+    }
+
     log.info(`Grid recentered v${newConfig.version}: ${newLower}-${newUpper}`)
+  }
+
+  let cycleCount = 0
+
+  const maybeUpdateVolatility = async (gridConfig: GridConfig): Promise<GridConfig> => {
+    const { volatilityEnabled } = config()
+    if (!volatilityEnabled) return gridConfig
+
+    cycleCount++
+    if (cycleCount % VOLATILITY_UPDATE_CYCLES !== 0) {
+      // Still apply existing volatility info if available
+      const existing = await repository.getVolatilityInfo()
+      if (existing) return applyVolatilityToGrid(gridConfig, existing)
+      return gridConfig
+    }
+
+    return await updateVolatilityInfo(gridConfig, false)
+  }
+
+  const updateVolatilityInfo = async (
+    gridConfig: GridConfig,
+    isRecenter: boolean,
+  ): Promise<GridConfig> => {
+    const { atrPeriod } = config()
+    const candles = await exchange.getOHLC()
+    const atr = computeATR(candles, atrPeriod)
+
+    const existing = await repository.getVolatilityInfo()
+    const referenceAtr = isRecenter || !existing ? atr : existing.referenceAtr
+
+    const info: VolatilityInfo = {
+      atr,
+      referenceAtr,
+      computedAt: nowTimestamp(),
+    }
+    await repository.saveVolatilityInfo(info)
+    log.info(`ATR updated: ${atr} (ref: ${referenceAtr})`)
+
+    return applyVolatilityToGrid(gridConfig, info)
+  }
+
+  const applyVolatilityToGrid = (gridConfig: GridConfig, info: VolatilityInfo): GridConfig => {
+    const { spacingMinMultiplier, spacingMaxMultiplier } = config()
+    const adjustedSpacing = adjustSpacing(
+      gridConfig,
+      info,
+      spacingMinMultiplier,
+      spacingMaxMultiplier,
+    )
+
+    if (Number(adjustedSpacing) === Number(gridConfig.spacing)) return gridConfig
+
+    const updated = { ...gridConfig, spacing: adjustedSpacing }
+    repository.saveGridConfig(updated)
+    log.info(`Spacing adjusted: ${gridConfig.spacing} → ${adjustedSpacing}`)
+    return updated
+  }
+
+  export const computeATR = (candles: OHLCCandle[], period: number): BtcPriceType => {
+    if (candles.length < 2) return BtcPrice(0.01)
+
+    const trueRanges = candles.slice(1).map((candle, i) => {
+      const prevClose = Number(candles[i].close)
+      const high = Number(candle.high)
+      const low = Number(candle.low)
+      return Math.max(high - low, Math.abs(high - prevClose), Math.abs(low - prevClose))
+    })
+
+    const relevantRanges = trueRanges.slice(-period)
+    const atr = relevantRanges.reduce((sum, tr) => sum + tr, 0) / relevantRanges.length
+    return BtcPrice(atr)
+  }
+
+  export const adjustSpacing = (
+    gridConfig: GridConfig,
+    info: VolatilityInfo,
+    minMult: number,
+    maxMult: number,
+  ): BtcPriceType => {
+    const refAtr = Number(info.referenceAtr)
+    if (refAtr === 0) return gridConfig.spacing
+
+    const baseSpacing =
+      (Number(gridConfig.upperPrice) - Number(gridConfig.lowerPrice)) / (gridConfig.levels - 1)
+    const atrRatio = Number(info.atr) / refAtr
+    const clampedRatio = Math.min(Math.max(atrRatio, minMult), maxMult)
+    return BtcPrice(baseSpacing * clampedRatio)
   }
 
   const reconcileOrders = async (_currentPrice: BtcPriceType) => {

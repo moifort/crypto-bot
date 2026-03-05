@@ -16,3 +16,4 @@ export const getOpenOrders = (...args: Parameters<Exchange['getOpenOrders']>) =>
   impl().getOpenOrders(...args)
 export const cancelOrder = (...args: Parameters<Exchange['cancelOrder']>) =>
   impl().cancelOrder(...args)
+export const getOHLC = (...args: Parameters<Exchange['getOHLC']>) => impl().getOHLC(...args)

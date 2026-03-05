@@ -17,6 +17,10 @@ export default defineNitroConfig({
     orderSizeUsdc: '',
     sandboxMode: '',
     postOnly: '',
+    volatilityEnabled: '',
+    atrPeriod: '',
+    spacingMinMultiplier: '',
+    spacingMaxMultiplier: '',
     sentryDsn: '',
   },
   storage: {

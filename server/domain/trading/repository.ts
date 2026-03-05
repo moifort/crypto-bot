@@ -1,5 +1,11 @@
 import type { Timestamp } from '~/domain/shared/types'
-import type { CompletedTrade, GridConfig, GridOrder, OrderId } from '~/domain/trading/types'
+import type {
+  CompletedTrade,
+  GridConfig,
+  GridOrder,
+  OrderId,
+  VolatilityInfo,
+} from '~/domain/trading/types'
 
 // Grid config (singleton)
 const gridStorage = () => useStorage('grid')
@@ -52,4 +58,12 @@ export const getLastCycleAt = () => snapshotsStorage().getItem<Timestamp>('last-
 
 export const saveLastCycleAt = async (timestamp: Timestamp) => {
   await snapshotsStorage().setItem<Timestamp>('last-cycle', timestamp)
+}
+
+// Volatility info
+export const getVolatilityInfo = () => snapshotsStorage().getItem<VolatilityInfo>('volatility')
+
+export const saveVolatilityInfo = async (info: VolatilityInfo) => {
+  await snapshotsStorage().setItem<VolatilityInfo>('volatility', info)
+  return info
 }

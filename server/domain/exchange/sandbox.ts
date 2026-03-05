@@ -3,9 +3,10 @@ import type {
   KrakenBalance,
   KrakenOrderInfo,
   KrakenOrderResult,
+  OHLCCandle,
   Ticker,
 } from '~/domain/exchange/types'
-import { Btc, Usdc } from '~/domain/shared/primitives'
+import { Btc, BtcPrice, Usdc } from '~/domain/shared/primitives'
 import type { BtcPrice as BtcPriceType, Btc as BtcType } from '~/domain/shared/types'
 import { KrakenOrderId as KrakenOrderIdPrimitive } from '~/domain/trading/primitives'
 import * as repository from '~/domain/trading/repository'
@@ -92,3 +93,19 @@ export const getOpenOrders = async (): Promise<KrakenOrderInfo[]> => {
 }
 
 export const cancelOrder = async (_orderId: KrakenOrderId): Promise<void> => {}
+
+export const getOHLC = async (): Promise<OHLCCandle[]> => {
+  const ticker = await kraken.getTicker()
+  const basePrice = Number(ticker.last)
+  const now = Math.floor(Date.now() / 1000)
+  return Array.from({ length: 24 }, (_, i) => {
+    const variation = 1 + (Math.random() - 0.5) * 0.02
+    return {
+      time: now - (23 - i) * 3600,
+      open: BtcPrice(basePrice * variation),
+      high: BtcPrice(basePrice * variation * 1.005),
+      low: BtcPrice(basePrice * variation * 0.995),
+      close: BtcPrice(basePrice * variation * (1 + (Math.random() - 0.5) * 0.005)),
+    }
+  })
+}

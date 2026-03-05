@@ -8,6 +8,15 @@ export type Exchange = {
   queryOrders: (orderIds: KrakenOrderId[]) => Promise<KrakenOrderInfo[]>
   getOpenOrders: () => Promise<KrakenOrderInfo[]>
   cancelOrder: (orderId: KrakenOrderId) => Promise<void>
+  getOHLC: () => Promise<OHLCCandle[]>
+}
+
+export type OHLCCandle = {
+  time: number
+  open: BtcPrice
+  high: BtcPrice
+  low: BtcPrice
+  close: BtcPrice
 }
 
 export type Ticker = {

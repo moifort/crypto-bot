@@ -75,6 +75,10 @@ globalThis.useRuntimeConfig = () => ({
   orderSizeUsdc: '100',
   sandboxMode: 'true',
   postOnly: 'true',
+  volatilityEnabled: '',
+  atrPeriod: '',
+  spacingMinMultiplier: '',
+  spacingMaxMultiplier: '',
   sentryDsn: '',
 })
 
@@ -116,6 +120,7 @@ export const exchangeMocks = {
   queryOrders: mock(() => Promise.resolve([] as unknown[])),
   getOpenOrders: mock(() => Promise.resolve([] as unknown[])),
   cancelOrder: mock(() => Promise.resolve()),
+  getOHLC: mock(() => Promise.resolve([])),
 }
 
 mock.module('~/domain/exchange', () => ({
@@ -125,6 +130,7 @@ mock.module('~/domain/exchange', () => ({
   queryOrders: (...args: unknown[]) => exchangeMocks.queryOrders(...(args as [])),
   getOpenOrders: (...args: unknown[]) => exchangeMocks.getOpenOrders(...(args as [])),
   cancelOrder: (...args: unknown[]) => exchangeMocks.cancelOrder(...(args as [])),
+  getOHLC: (...args: unknown[]) => exchangeMocks.getOHLC(...(args as [])),
 }))
 
 mock.module('~/system/config/index', () => ({
@@ -138,6 +144,10 @@ mock.module('~/system/config/index', () => ({
     orderSizeUsdc: 100,
     sandboxMode: true,
     postOnly: true,
+    volatilityEnabled: false,
+    atrPeriod: 14,
+    spacingMinMultiplier: 0.5,
+    spacingMaxMultiplier: 2.0,
     sentryDsn: undefined,
   }),
 }))

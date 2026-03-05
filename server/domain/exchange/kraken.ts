@@ -3,6 +3,7 @@ import type {
   KrakenOrderInfo,
   KrakenOrderResult,
   KrakenOrderStatus,
+  OHLCCandle,
   Ticker,
 } from '~/domain/exchange/types'
 import { Btc, BtcPrice, Usdc } from '~/domain/shared/primitives'
@@ -173,4 +174,16 @@ export const getOpenOrders = async (): Promise<KrakenOrderInfo[]> => {
 
 export const cancelOrder = async (orderId: KrakenOrderId) => {
   await privateRequest('CancelOrder', { txid: String(orderId) })
+}
+
+export const getOHLC = async (): Promise<OHLCCandle[]> => {
+  const result = await publicRequest(`OHLC?pair=${PAIR}&interval=60`)
+  const candles = result[Object.keys(result).find((k) => k !== 'last') ?? ''] as unknown[][]
+  return candles.map((c) => ({
+    time: Number(c[0]),
+    open: BtcPrice(c[1]),
+    high: BtcPrice(c[2]),
+    low: BtcPrice(c[3]),
+    close: BtcPrice(c[4]),
+  }))
 }

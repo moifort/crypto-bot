@@ -57,6 +57,12 @@ export type StatsResult = {
   sommeMiseUsdc: SignedUsdc
 }
 
+export type VolatilityInfo = {
+  atr: BtcPrice
+  referenceAtr: BtcPrice
+  computedAt: Timestamp
+}
+
 export type CompletedTrade = {
   id: TradeId
   buyOrderId: OrderId

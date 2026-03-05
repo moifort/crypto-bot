@@ -13,6 +13,10 @@ export const config = () => {
     orderSizeUsdc: Usdc(runtimeConfig.orderSizeUsdc),
     sandboxMode: String(runtimeConfig.sandboxMode) === 'true',
     postOnly: String(runtimeConfig.postOnly ?? 'true') !== 'false',
+    volatilityEnabled: String(runtimeConfig.volatilityEnabled) === 'true',
+    atrPeriod: Number(runtimeConfig.atrPeriod || '14'),
+    spacingMinMultiplier: Number(runtimeConfig.spacingMinMultiplier || '0.5'),
+    spacingMaxMultiplier: Number(runtimeConfig.spacingMaxMultiplier || '2.0'),
     sentryDsn: runtimeConfig.sentryDsn ? SentryDsn(runtimeConfig.sentryDsn) : undefined,
   }
 }
