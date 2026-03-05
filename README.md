@@ -1,49 +1,84 @@
 # Crypto Bot
 
-Grid trading bot BTC/USDC sur Kraken.
+Grid trading bot for BTC/USDC on Kraken.
 
-Place automatiquement des ordres d'achat en dessous du prix actuel et des ordres de vente au-dessus. Chaque oscillation de prix = un petit profit automatique.
+<p align="center">
+  <img src="docs/screenshots/ios-app.png" width="300" alt="iOS app">
+  <img src="docs/screenshots/ios-widget.png" width="300" alt="iOS widget">
+</p>
 
-## Stack
+## How it works
 
-Bun · Nitro · TypeScript strict · ts-brand · Zod · Kraken REST API
+The bot exploits natural Bitcoin price oscillations to generate profits automatically.
 
-## Setup
+It places a **grid of orders** around the current price: buy orders below and sell orders above. Each time the price moves up then back down (or vice versa), a buy and a sell are triggered — the difference between the two is the profit.
+
+The trading cycle runs every 30 seconds: the bot checks the price, adjusts the grid if needed, and executes orders.
+
+### Concrete example
+
+With a grid between 80,000 and 100,000 USDC, 10 levels, 50 USDC per order:
+
+1. The bot places buy orders at 80k, 82k, 84k… and sell orders at 92k, 94k, 96k…
+2. Price drops to 84k → a buy order is filled
+3. Price climbs back to 86k → a sell order is filled
+4. The bot pockets the difference (~2k USDC spread × the BTC quantity)
+
+## Prerequisites
+
+- A [Kraken](https://www.kraken.com) account with API keys (permissions: query balances, create orders)
+- [Docker](https://www.docker.com) installed on the machine that will host the bot
+
+## Installation
+
+1. Create a `.env` file with your configuration:
+
+```env
+# Kraken API keys
+NITRO_KRAKEN_API_KEY=your-api-key
+NITRO_KRAKEN_PRIVATE_KEY=your-private-key
+
+# Dashboard access protection (optional)
+NITRO_API_TOKEN=a-secret-token
+
+# Grid parameters
+NITRO_GRID_LOWER_PRICE=80000
+NITRO_GRID_UPPER_PRICE=100000
+NITRO_GRID_LEVELS=10
+NITRO_ORDER_SIZE_USDC=50
+
+# Sandbox mode: test without placing real orders
+NITRO_SANDBOX_MODE=true
+```
+
+2. Start the bot:
 
 ```bash
-cp .env.example .env
-# Remplir les clés API Kraken et paramètres de grid
-bun install
-bun run dev
+docker compose up -d
 ```
+
+The dashboard is available at `http://localhost:3100/stats`.
 
 ## Configuration
 
-| Variable | Description | Default |
-|----------|-------------|---------|
-| `NITRO_KRAKEN_API_KEY` | Clé API Kraken | |
-| `NITRO_KRAKEN_PRIVATE_KEY` | Clé privée Kraken | |
-| `NITRO_API_TOKEN` | Token Bearer pour `/stats` (optionnel) | |
-| `NITRO_GRID_LOWER_PRICE` | Prix bas de la grille (USDC) | `80000` |
-| `NITRO_GRID_UPPER_PRICE` | Prix haut de la grille (USDC) | `100000` |
-| `NITRO_GRID_LEVELS` | Nombre de niveaux | `10` |
-| `NITRO_ORDER_SIZE_USDC` | Taille par ordre (USDC) | `50` |
-| `NITRO_SANDBOX_MODE` | Valide les ordres sans exécuter | `true` |
+| Parameter | Description | Default |
+|---|---|---|
+| `NITRO_GRID_LOWER_PRICE` | Lower bound of the grid (in USDC) | `80000` |
+| `NITRO_GRID_UPPER_PRICE` | Upper bound of the grid (in USDC) | `100000` |
+| `NITRO_GRID_LEVELS` | Number of levels in the grid | `10` |
+| `NITRO_ORDER_SIZE_USDC` | Amount per order (in USDC) | `50` |
+| `NITRO_SANDBOX_MODE` | `true` = orders are validated by Kraken but not executed | `true` |
 
-## Endpoints
+## Getting started gradually
 
-- `GET /stats` — P&L, trades, ordres ouverts, balances, prix actuel, config grille
+It's recommended to start cautiously:
 
-## Docker
+1. **Sandbox** — Keep `SANDBOX_MODE=true` to verify everything works without risk. Orders are validated by Kraken but never executed.
+2. **Micro-live** — Go live with minimal parameters: 3 levels, 10 USDC per order (~30 USDC committed total).
+3. **Production** — Once confident, scale up to 10 levels and 50 USDC per order.
 
-```bash
-docker compose up
-```
+## iOS app
 
-Port 3100 → 3000. Données persistées dans `./data`.
+A companion iOS app lets you monitor the bot's performance (P&L, trades, open orders, balances) directly from your iPhone, with a home screen widget.
 
-## Phases de test
 
-1. **Sandbox** (`SANDBOX_MODE=true`) — ordres validés par Kraken mais non exécutés
-2. **Micro-live** — `ORDER_SIZE_USDC=10`, 3 niveaux, ~30$ total
-3. **Production** — 10 niveaux, 50 USDC/ordre
