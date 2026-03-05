@@ -1,8 +1,14 @@
 import { beforeEach, describe, expect, test } from 'bun:test'
-import type { KrakenOrderInfo, KrakenOrderResult } from '~/domain/exchange/types'
+import type { KrakenOrderInfo } from '~/domain/exchange/types'
 import { Btc, BtcPrice, nowTimestamp, Usdc } from '~/domain/shared/primitives'
 import { TradingCommand } from '~/domain/trading/command'
-import { GridLevel, KrakenOrderId, randomGridId, randomOrderId } from '~/domain/trading/primitives'
+import {
+  GridLevel,
+  GridVersion,
+  KrakenOrderId,
+  randomGridId,
+  randomOrderId,
+} from '~/domain/trading/primitives'
 import * as repository from '~/domain/trading/repository'
 import type { GridConfig, GridOrder } from '~/domain/trading/types'
 import { exchangeMocks } from '~/test/setup'
@@ -14,6 +20,7 @@ const makeGridConfig = (overrides?: Partial<GridConfig>): GridConfig => ({
   levels: 5,
   orderSizeUsdc: Usdc(100),
   spacing: BtcPrice(10000),
+  version: GridVersion(1),
   createdAt: nowTimestamp(),
   ...overrides,
 })
@@ -42,9 +49,10 @@ beforeEach(() => {
   exchangeMocks.queryOrders.mockImplementation(() => Promise.resolve([]))
   exchangeMocks.placeOrder.mockImplementation(() =>
     Promise.resolve({
+      kind: 'placed' as const,
       orderId: 'KRAKEN-001',
       description: 'test',
-    } as unknown as KrakenOrderResult),
+    }),
   )
 })
 
@@ -178,6 +186,20 @@ describe('executeCycle', () => {
     })
   })
 
+  test('does not save order when post-only rejected', async () => {
+    const gridConfig = makeGridConfig()
+    await repository.saveGridConfig(gridConfig)
+
+    exchangeMocks.placeOrder.mockImplementation(
+      () => Promise.resolve({ kind: 'post-only-rejected' }) as never,
+    )
+
+    await TradingCommand.executeCycle()
+
+    const orders = await repository.findAllOrders()
+    expect(orders).toHaveLength(0)
+  })
+
   test('skips levels with active orders', async () => {
     const gridConfig = makeGridConfig()
     await repository.saveGridConfig(gridConfig)
@@ -196,5 +218,81 @@ describe('executeCycle', () => {
     const orders = await repository.findAllOrders()
     const level0Orders = orders.filter((o) => o.level === GridLevel(0))
     expect(level0Orders).toHaveLength(1)
+  })
+
+  test('triggers recenter when price is below grid range', async () => {
+    const gridConfig = makeGridConfig()
+    await repository.saveGridConfig(gridConfig)
+
+    exchangeMocks.getTicker.mockImplementation(() =>
+      Promise.resolve({ ask: BtcPrice(70100), bid: BtcPrice(69900), last: BtcPrice(70000) }),
+    )
+
+    const result = await TradingCommand.executeCycle()
+    expect(result).toEqual({ kind: 'recenter-in-progress' })
+
+    const newConfig = await repository.getGridConfig()
+    expect(newConfig).not.toBeNull()
+    expect(newConfig?.version).toBe(GridVersion(2))
+    expect(Number(newConfig?.lowerPrice)).toBe(50000)
+    expect(Number(newConfig?.upperPrice)).toBe(90000)
+    expect(newConfig?.recenteredAt).toBeDefined()
+  })
+
+  test('triggers recenter when less than 30% levels are useful', async () => {
+    // 20 levels → spacing ≈ 2105, usefulRadius ≈ 4211
+    // At price 81000: only 3 levels within radius → 15% < 30% → trigger
+    const gridConfig = makeGridConfig({
+      levels: 20,
+      spacing: BtcPrice(40000 / 19),
+    })
+    await repository.saveGridConfig(gridConfig)
+
+    exchangeMocks.getTicker.mockImplementation(() =>
+      Promise.resolve({ ask: BtcPrice(81100), bid: BtcPrice(80900), last: BtcPrice(81000) }),
+    )
+
+    const result = await TradingCommand.executeCycle()
+    expect(result).toEqual({ kind: 'recenter-in-progress' })
+  })
+
+  test('cancels open orders during recenter', async () => {
+    const gridConfig = makeGridConfig()
+    await repository.saveGridConfig(gridConfig)
+
+    const openOrder = makeOrder({
+      gridId: gridConfig.id,
+      krakenOrderId: KrakenOrderId('KRAKEN-OPEN'),
+      status: 'open',
+    })
+    await repository.saveOrder(openOrder)
+
+    exchangeMocks.getTicker.mockImplementation(() =>
+      Promise.resolve({ ask: BtcPrice(70100), bid: BtcPrice(69900), last: BtcPrice(70000) }),
+    )
+
+    await TradingCommand.executeCycle()
+
+    expect(exchangeMocks.cancelOrder).toHaveBeenCalled()
+    const orders = await repository.findAllOrders()
+    const cancelled = orders.find((o) => o.id === openOrder.id)
+    expect(cancelled?.status).toBe('cancelled')
+  })
+})
+
+describe('shouldRecenter', () => {
+  test('returns false when price is centered in grid', () => {
+    const gridConfig = makeGridConfig()
+    expect(TradingCommand.shouldRecenter(gridConfig, BtcPrice(100000))).toBe(false)
+  })
+
+  test('returns true when price is below grid range', () => {
+    const gridConfig = makeGridConfig()
+    expect(TradingCommand.shouldRecenter(gridConfig, BtcPrice(70000))).toBe(true)
+  })
+
+  test('returns true when price is above grid range', () => {
+    const gridConfig = makeGridConfig()
+    expect(TradingCommand.shouldRecenter(gridConfig, BtcPrice(130000))).toBe(true)
   })
 })

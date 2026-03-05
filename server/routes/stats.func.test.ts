@@ -1,6 +1,6 @@
 import { describe, expect, test } from 'bun:test'
 import { BtcPrice, nowTimestamp, Usdc } from '~/domain/shared/primitives'
-import { randomGridId } from '~/domain/trading/primitives'
+import { GridVersion, randomGridId } from '~/domain/trading/primitives'
 import * as repository from '~/domain/trading/repository'
 import type { GridConfig } from '~/domain/trading/types'
 import handler from '~/routes/stats.get'
@@ -15,6 +15,7 @@ describe('GET /stats', () => {
       levels: 5,
       orderSizeUsdc: Usdc(100),
       spacing: BtcPrice(10000),
+      version: GridVersion(1),
       createdAt: nowTimestamp(),
     }
     await repository.saveGridConfig(gridConfig)

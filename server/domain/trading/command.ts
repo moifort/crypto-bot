@@ -1,7 +1,13 @@
 import * as exchange from '~/domain/exchange'
 import { Btc, BtcPrice, nowTimestamp, SignedUsdc, Usdc } from '~/domain/shared/primitives'
 import type { BtcPrice as BtcPriceType } from '~/domain/shared/types'
-import { GridLevel, randomGridId, randomOrderId, randomTradeId } from '~/domain/trading/primitives'
+import {
+  GridLevel,
+  GridVersion,
+  randomGridId,
+  randomOrderId,
+  randomTradeId,
+} from '~/domain/trading/primitives'
 import * as repository from '~/domain/trading/repository'
 import type { GridConfig, GridOrder, TradingError } from '~/domain/trading/types'
 import { config } from '~/system/config/index'
@@ -29,6 +35,7 @@ export namespace TradingCommand {
       levels: gridLevels,
       orderSizeUsdc,
       spacing,
+      version: GridVersion(1),
       createdAt: nowTimestamp(),
     }
 
@@ -43,10 +50,74 @@ export namespace TradingCommand {
     const currentPrice = ticker.last
     log.info(`BTC/USDC price: ${currentPrice}`)
 
+    if (shouldRecenter(gridConfig, currentPrice)) {
+      await recenterGrid(gridConfig, currentPrice)
+      await repository.saveLastCycleAt(nowTimestamp())
+      return { kind: 'recenter-in-progress' }
+    }
+
     await reconcileOrders(currentPrice)
     await placeGridOrders(gridConfig, currentPrice)
     await repository.saveLastCycleAt(nowTimestamp())
     return undefined
+  }
+
+  export const shouldRecenter = (gridConfig: GridConfig, currentPrice: BtcPriceType): boolean => {
+    const lower = Number(gridConfig.lowerPrice)
+    const upper = Number(gridConfig.upperPrice)
+    const price = Number(currentPrice)
+
+    // Hard fallback: price outside the grid range
+    if (price < lower || price > upper) return true
+
+    // Soft trigger: less than 30% of levels are "useful" (within 2x spacing of current price)
+    const spacingNum = Number(gridConfig.spacing)
+    const usefulRadius = 2 * spacingNum
+    const usefulLevels = Array.from({ length: gridConfig.levels }, (_, i) => {
+      const levelPrice = lower + i * spacingNum
+      return Math.abs(levelPrice - price) <= usefulRadius
+    }).filter(Boolean).length
+
+    return usefulLevels / gridConfig.levels < 0.3
+  }
+
+  const recenterGrid = async (gridConfig: GridConfig, currentPrice: BtcPriceType) => {
+    log.info(
+      `Recentering grid around ${currentPrice} (was ${gridConfig.lowerPrice}-${gridConfig.upperPrice})`,
+    )
+
+    // Cancel all open orders
+    const allOrders = await repository.findAllOrders()
+    const openOrders = allOrders.filter((o) => o.status === 'open' || o.status === 'pending')
+
+    await openOrders.reduce(async (prev, order) => {
+      await prev
+      if (order.krakenOrderId) {
+        await exchange.cancelOrder(order.krakenOrderId)
+      }
+      await repository.saveOrder({ ...order, status: 'cancelled', updatedAt: nowTimestamp() })
+    }, Promise.resolve())
+
+    // Compute new grid bounds centered on current price with same width
+    const width = Number(gridConfig.upperPrice) - Number(gridConfig.lowerPrice)
+    const newLower = BtcPrice(Number(currentPrice) - width / 2)
+    const newUpper = BtcPrice(Number(currentPrice) + width / 2)
+    const newSpacing = BtcPrice(width / (gridConfig.levels - 1))
+
+    const newConfig: GridConfig = {
+      id: randomGridId(),
+      lowerPrice: newLower,
+      upperPrice: newUpper,
+      levels: gridConfig.levels,
+      orderSizeUsdc: gridConfig.orderSizeUsdc,
+      spacing: newSpacing,
+      version: GridVersion(gridConfig.version + 1),
+      createdAt: gridConfig.createdAt,
+      recenteredAt: nowTimestamp(),
+    }
+
+    await repository.saveGridConfig(newConfig)
+    log.info(`Grid recentered v${newConfig.version}: ${newLower}-${newUpper}`)
   }
 
   const reconcileOrders = async (_currentPrice: BtcPriceType) => {
@@ -165,6 +236,10 @@ export namespace TradingCommand {
 
       try {
         const result = await exchange.placeOrder(side, BtcPrice(price), Btc(sizeBtc))
+        if (result.kind === 'post-only-rejected') {
+          log.info(`Post-only rejected for ${side} at ${price}, skipping`)
+          return
+        }
         const order: GridOrder = {
           id: randomOrderId(),
           gridId: gridConfig.id,

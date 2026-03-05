@@ -74,6 +74,10 @@ struct ContentView: View {
             Section("Grid") {
                 row("Range", value: "\(formatUsdc(stats.gridConfig.lowerPrice)) – \(formatUsdc(stats.gridConfig.upperPrice))")
                 row("Levels", value: "\(stats.gridConfig.levels)")
+                row("Version", value: "v\(stats.gridConfig.version)")
+                if let recenteredAt = stats.gridConfig.recenteredAt {
+                    row("Last Recenter", value: formatRelativeDate(recenteredAt))
+                }
             }
 
             if let lastCycle = stats.lastCycleAt {

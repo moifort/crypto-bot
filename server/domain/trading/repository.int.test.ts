@@ -1,6 +1,12 @@
 import { describe, expect, test } from 'bun:test'
 import { Btc, BtcPrice, nowTimestamp, SignedUsdc, Usdc } from '~/domain/shared/primitives'
-import { GridLevel, randomGridId, randomOrderId, randomTradeId } from '~/domain/trading/primitives'
+import {
+  GridLevel,
+  GridVersion,
+  randomGridId,
+  randomOrderId,
+  randomTradeId,
+} from '~/domain/trading/primitives'
 import {
   findAllOrders,
   findAllTrades,
@@ -22,6 +28,7 @@ const makeGridConfig = (overrides?: Partial<GridConfig>): GridConfig => ({
   levels: 5,
   orderSizeUsdc: Usdc(100),
   spacing: BtcPrice(10000),
+  version: GridVersion(1),
   createdAt: nowTimestamp(),
   ...overrides,
 })

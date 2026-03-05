@@ -3,6 +3,7 @@ import { z } from 'zod'
 import type {
   GridId as GridIdType,
   GridLevel as GridLevelType,
+  GridVersion as GridVersionType,
   KrakenOrderId as KrakenOrderIdType,
   OrderId as OrderIdType,
   TradeId as TradeIdType,
@@ -39,4 +40,11 @@ export const GridLevel = (value: unknown) => {
     .preprocess((v) => (typeof v === 'string' ? Number(v) : v), z.number().int().nonnegative())
     .parse(value)
   return make<GridLevelType>()(v)
+}
+
+export const GridVersion = (value: unknown) => {
+  const v = z
+    .preprocess((v) => (typeof v === 'string' ? Number(v) : v), z.number().int().positive())
+    .parse(value)
+  return make<GridVersionType>()(v)
 }
