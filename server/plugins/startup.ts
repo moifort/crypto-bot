@@ -11,5 +11,8 @@ export default defineNitroPlugin(() => {
     gridLevels: cfg.gridLevels,
     orderSizeUsdc: cfg.orderSizeUsdc,
     sandboxMode: cfg.sandboxMode,
+    postOnly: cfg.postOnly,
+    gridRecentering: cfg.gridRecentering,
+    volatilityEnabled: cfg.volatilityEnabled,
   })
 })

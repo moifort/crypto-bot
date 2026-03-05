@@ -72,7 +72,7 @@ export namespace TradingCommand {
       }
     }
 
-    if (shouldRecenter(gridConfig, currentPrice)) {
+    if (config().gridRecentering && shouldRecenter(gridConfig, currentPrice)) {
       await recenterGrid(gridConfig, currentPrice)
       await repository.saveLastCycleAt(nowTimestamp())
       return { kind: 'recenter-in-progress' }
