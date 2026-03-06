@@ -93,15 +93,16 @@ describe('getTrades', () => {
 })
 
 describe('getOrders', () => {
-  test('filters to open/pending orders only', async () => {
+  test('excludes traded and cancelled orders', async () => {
     await repository.saveOrder(makeOrder({ status: 'open' }))
     await repository.saveOrder(makeOrder({ status: 'pending' }))
     await repository.saveOrder(makeOrder({ status: 'filled' }))
     await repository.saveOrder(makeOrder({ status: 'cancelled' }))
+    await repository.saveOrder(makeOrder({ status: 'traded' }))
 
     const orders = await TradingQuery.getOrders()
-    expect(orders).toHaveLength(2)
-    expect(orders.every((o) => o.status === 'open' || o.status === 'pending')).toBe(true)
+    expect(orders).toHaveLength(3)
+    expect(orders.every((o) => o.status !== 'traded' && o.status !== 'cancelled')).toBe(true)
   })
 
   test('sorts by level ascending', async () => {

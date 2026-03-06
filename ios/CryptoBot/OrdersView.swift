@@ -6,11 +6,15 @@ struct OrdersView: View {
     @State private var loading = false
 
     private var sellOrders: [OrderData] {
-        orders.filter { $0.side == "sell" }
+        orders.filter { $0.side == "sell" && $0.status != "filled" }
     }
 
     private var buyOrders: [OrderData] {
-        orders.filter { $0.side == "buy" }
+        orders.filter { $0.side == "buy" && $0.status != "filled" }
+    }
+
+    private var filledOrders: [OrderData] {
+        orders.filter { $0.status == "filled" }
     }
 
     var body: some View {
@@ -36,6 +40,13 @@ struct OrdersView: View {
 
     private var ordersList: some View {
         List {
+            if !filledOrders.isEmpty {
+                Section("Pending Trades") {
+                    ForEach(filledOrders) { order in
+                        PendingTradeRow(order: order)
+                    }
+                }
+            }
             if !sellOrders.isEmpty {
                 Section("Sell Orders") {
                     ForEach(sellOrders) { order in
@@ -125,6 +136,61 @@ private struct OrderRow: View {
                     .font(.caption)
                     .foregroundStyle(.secondary)
             }
+        }
+        .padding(.vertical, 4)
+    }
+}
+
+private struct PendingTradeRow: View {
+    let order: OrderData
+
+    private var isBuy: Bool { order.side == "buy" }
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 6) {
+            HStack {
+                Text("Level \(order.level)")
+                    .font(.caption)
+                    .fontWeight(.medium)
+                    .padding(.horizontal, 8)
+                    .padding(.vertical, 2)
+                    .background(.orange.opacity(0.15))
+                    .foregroundStyle(.orange)
+                    .clipShape(.capsule)
+
+                Text(isBuy ? "BOUGHT" : "SOLD")
+                    .font(.caption)
+                    .fontWeight(.semibold)
+                    .foregroundStyle(.orange)
+
+                Spacer()
+
+                Text(order.price, format: .currency(code: "USD"))
+                    .fontWeight(.semibold)
+            }
+
+            if let counterPrice = order.expectedCounterPrice {
+                HStack {
+                    Image(systemName: "arrow.right")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                    Text(isBuy ? "sell at" : "buy at")
+                        .font(.subheadline)
+                        .foregroundStyle(.secondary)
+                    Text(counterPrice, format: .currency(code: "USD"))
+                        .font(.subheadline)
+                        .fontWeight(.medium)
+                }
+            }
+
+            HStack {
+                Text(order.sizeBtc, format: .number.precision(.fractionLength(6)))
+                + Text(" BTC")
+                Spacer()
+                Text(formatRelativeDate(order.updatedAt))
+                    .foregroundStyle(.secondary)
+            }
+            .font(.subheadline)
         }
         .padding(.vertical, 4)
     }

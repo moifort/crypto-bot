@@ -50,6 +50,8 @@ export type StatsResult = {
   tradeCount: number
   openBuyOrders: number
   openSellOrders: number
+  filledBuyOrders: number
+  filledSellOrders: number
   balanceUsdc: Usdc
   balanceBtc: Btc
   currentPrice: BtcPrice

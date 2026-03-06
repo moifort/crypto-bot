@@ -290,6 +290,8 @@ extension StatsData {
         tradeCount: 28,
         openBuyOrders: 5,
         openSellOrders: 4,
+        filledBuyOrders: 2,
+        filledSellOrders: 0,
         balanceUsdc: 5000.0,
         balanceBtc: 0.05,
         currentPrice: 95000.0,

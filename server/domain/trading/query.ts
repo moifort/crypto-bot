@@ -1,5 +1,5 @@
 import * as exchange from '~/domain/exchange'
-import { SignedUsdc, Usdc } from '~/domain/shared/primitives'
+import { BtcPrice, SignedUsdc, Usdc } from '~/domain/shared/primitives'
 import * as repository from '~/domain/trading/repository'
 import type { StatsResult, TradingError } from '~/domain/trading/types'
 import { config } from '~/system/config/index'
@@ -28,9 +28,14 @@ export namespace TradingQuery {
   }
 
   export const getOrders = async () => {
-    const orders = await repository.findAllOrders()
+    const [orders, gridConfig] = await Promise.all([
+      repository.findAllOrders(),
+      repository.getGridConfig(),
+    ])
+    const spacing = gridConfig?.spacing ?? 0
+
     return orders
-      .filter((o) => o.status === 'open' || o.status === 'pending')
+      .filter((o) => o.status !== 'traded' && o.status !== 'cancelled')
       .sort((a, b) => a.level - b.level)
       .map(({ id, side, price, sizeUsdc, sizeBtc, level, status, createdAt, updatedAt }) => ({
         id,
@@ -42,6 +47,12 @@ export namespace TradingQuery {
         status,
         createdAt,
         updatedAt,
+        expectedCounterPrice:
+          status === 'filled'
+            ? side === 'buy'
+              ? BtcPrice(Number(price) + Number(spacing))
+              : BtcPrice(Number(price) - Number(spacing))
+            : null,
       }))
   }
 
@@ -60,6 +71,7 @@ export namespace TradingQuery {
     const activeOrders = orders.filter(
       (order) => order.status === 'open' || order.status === 'pending',
     )
+    const filledOrders = orders.filter((order) => order.status === 'filled')
     const totalProfitUsdc = trades.reduce((sum, trade) => sum + Number(trade.profitUsdc), 0)
     const totalFeesUsdc = trades.reduce((sum, trade) => sum + Number(trade.feeUsdc ?? 0), 0)
 
@@ -72,6 +84,8 @@ export namespace TradingQuery {
       tradeCount: trades.length,
       openBuyOrders: activeOrders.filter((o) => o.side === 'buy').length,
       openSellOrders: activeOrders.filter((o) => o.side === 'sell').length,
+      filledBuyOrders: filledOrders.filter((o) => o.side === 'buy').length,
+      filledSellOrders: filledOrders.filter((o) => o.side === 'sell').length,
       balanceUsdc: balance.usdc,
       balanceBtc: balance.btc,
       currentPrice: ticker.last,

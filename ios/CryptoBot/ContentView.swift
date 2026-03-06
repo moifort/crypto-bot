@@ -65,6 +65,15 @@ struct ContentView: View {
                 } label: {
                     row("Sell Orders", value: "\(stats.openSellOrders)", color: .red)
                 }
+                if (stats.filledBuyOrders ?? 0) + (stats.filledSellOrders ?? 0) > 0 {
+                    NavigationLink {
+                        OrdersView()
+                    } label: {
+                        row("Pending Trades",
+                            value: "\((stats.filledBuyOrders ?? 0) + (stats.filledSellOrders ?? 0))",
+                            color: .orange)
+                    }
+                }
             }
 
             Section("Market") {

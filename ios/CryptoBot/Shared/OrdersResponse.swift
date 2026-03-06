@@ -15,4 +15,5 @@ struct OrderData: Codable, Sendable, Identifiable {
     let status: String
     let createdAt: String
     let updatedAt: String
+    let expectedCounterPrice: Double?
 }
