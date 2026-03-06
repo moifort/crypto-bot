@@ -58,7 +58,7 @@ x-casaos:
   author: self
   category: self
   hostname: ""
-  icon: https://raw.githubusercontent.com/moifort/crypto-bot/main/public/icon.png
+  icon: https://cdn-icons-png.flaticon.com/512/2021/2021646.png
   index: /
   is_uncontrolled: false
   port_map: "3003"
