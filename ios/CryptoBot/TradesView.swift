@@ -30,6 +30,7 @@ struct TradesView: View {
         List(trades) { trade in
             TradeRow(trade: trade)
         }
+        .accessibilityIdentifier("trades-list")
     }
 
     private func errorView(_ message: String) -> some View {

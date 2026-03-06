@@ -8,9 +8,18 @@
 
 /* Begin PBXBuildFile section */
 		408BDC2A2D6D00000000001C /* CryptoBotWidgetExtension.appex in Embed Extensions */ = {isa = PBXBuildFile; fileRef = 408BDC2A2D6D000000000007 /* CryptoBotWidgetExtension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
+		5780B9E37CFCAEFCA81DFFC8 /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = F2C3570FCF740A70CAB99BF5 /* Foundation.framework */; };
+		CA1AE96C7BB1E7260DFA657D /* CryptoBotUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A8929AB6A85D3EC24340125B /* CryptoBotUITests.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
+		06A986E6A5D029D380BF4519 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 408BDC2A2D6D000000000001 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 408BDC2A2D6D000000000008;
+			remoteInfo = CryptoBot;
+		};
 		408BDC2A2D6D00000000001B /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = 408BDC2A2D6D000000000001 /* Project object */;
@@ -37,6 +46,9 @@
 /* Begin PBXFileReference section */
 		408BDC2A2D6D000000000006 /* CryptoBot.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = CryptoBot.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		408BDC2A2D6D000000000007 /* CryptoBotWidgetExtension.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = CryptoBotWidgetExtension.appex; sourceTree = BUILT_PRODUCTS_DIR; };
+		A8929AB6A85D3EC24340125B /* CryptoBotUITests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = CryptoBotUITests.swift; path = ../CryptoBotUITests/CryptoBotUITests.swift; sourceTree = "<group>"; };
+		D9BA6DABDE5307C5726AFD50 /* CryptoBotUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = CryptoBotUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		F2C3570FCF740A70CAB99BF5 /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS18.0.sdk/System/Library/Frameworks/Foundation.framework; sourceTree = DEVELOPER_DIR; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
@@ -64,6 +76,8 @@
 		};
 		408BDC2A2D6D000000000005 /* CryptoBotWidget */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+			);
 			path = CryptoBotWidget;
 			sourceTree = "<group>";
 		};
@@ -84,6 +98,14 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		F086F45759268B087F6F29D5 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				5780B9E37CFCAEFCA81DFFC8 /* Foundation.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
@@ -93,6 +115,8 @@
 				408BDC2A2D6D000000000004 /* CryptoBot */,
 				408BDC2A2D6D000000000005 /* CryptoBotWidget */,
 				408BDC2A2D6D000000000003 /* Products */,
+				FA3D4587969C05F527E2AF48 /* Frameworks */,
+				448E84CBD89B91993F79A10C /* CryptoBotUITests */,
 			);
 			sourceTree = "<group>";
 		};
@@ -101,13 +125,57 @@
 			children = (
 				408BDC2A2D6D000000000006 /* CryptoBot.app */,
 				408BDC2A2D6D000000000007 /* CryptoBotWidgetExtension.appex */,
+				D9BA6DABDE5307C5726AFD50 /* CryptoBotUITests.xctest */,
 			);
 			name = Products;
+			sourceTree = "<group>";
+		};
+		448E84CBD89B91993F79A10C /* CryptoBotUITests */ = {
+			isa = PBXGroup;
+			children = (
+				A8929AB6A85D3EC24340125B /* CryptoBotUITests.swift */,
+			);
+			name = CryptoBotUITests;
+			path = CryptoBotUITests;
+			sourceTree = "<group>";
+		};
+		6ADDA4E5F7CED682C8B745B1 /* iOS */ = {
+			isa = PBXGroup;
+			children = (
+				F2C3570FCF740A70CAB99BF5 /* Foundation.framework */,
+			);
+			name = iOS;
+			sourceTree = "<group>";
+		};
+		FA3D4587969C05F527E2AF48 /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+				6ADDA4E5F7CED682C8B745B1 /* iOS */,
+			);
+			name = Frameworks;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
+		216B999F98E0AA2356550F10 /* CryptoBotUITests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = E1E1078ED11E4304107539D4 /* Build configuration list for PBXNativeTarget "CryptoBotUITests" */;
+			buildPhases = (
+				0A351479D9B59EEF91CA8444 /* Sources */,
+				F086F45759268B087F6F29D5 /* Frameworks */,
+				0CD8019A2E57DD6F2743AF22 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				C7EFEF7D69AA7C765288F84F /* PBXTargetDependency */,
+			);
+			name = CryptoBotUITests;
+			productName = CryptoBotUITests;
+			productReference = D9BA6DABDE5307C5726AFD50 /* CryptoBotUITests.xctest */;
+			productType = "com.apple.product-type.bundle.ui-testing";
+		};
 		408BDC2A2D6D000000000008 /* CryptoBot */ = {
 			isa = PBXNativeTarget;
 			buildConfigurationList = 408BDC2A2D6D000000000012 /* Build configuration list for PBXNativeTarget "CryptoBot" */;
@@ -126,8 +194,6 @@
 				408BDC2A2D6D000000000004 /* CryptoBot */,
 			);
 			name = CryptoBot;
-			packageProductDependencies = (
-			);
 			productName = CryptoBot;
 			productReference = 408BDC2A2D6D000000000006 /* CryptoBot.app */;
 			productType = "com.apple.product-type.application";
@@ -148,8 +214,6 @@
 				408BDC2A2D6D000000000005 /* CryptoBotWidget */,
 			);
 			name = CryptoBotWidgetExtension;
-			packageProductDependencies = (
-			);
 			productName = CryptoBotWidgetExtension;
 			productReference = 408BDC2A2D6D000000000007 /* CryptoBotWidgetExtension.appex */;
 			productType = "com.apple.product-type.app-extension";
@@ -188,11 +252,19 @@
 			targets = (
 				408BDC2A2D6D000000000008 /* CryptoBot */,
 				408BDC2A2D6D000000000009 /* CryptoBotWidgetExtension */,
+				216B999F98E0AA2356550F10 /* CryptoBotUITests */,
 			);
 		};
 /* End PBXProject section */
 
 /* Begin PBXResourcesBuildPhase section */
+		0CD8019A2E57DD6F2743AF22 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		408BDC2A2D6D00000000000B /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -210,6 +282,14 @@
 /* End PBXResourcesBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
+		0A351479D9B59EEF91CA8444 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				CA1AE96C7BB1E7260DFA657D /* CryptoBotUITests.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		408BDC2A2D6D00000000000A /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -232,9 +312,33 @@
 			target = 408BDC2A2D6D000000000009 /* CryptoBotWidgetExtension */;
 			targetProxy = 408BDC2A2D6D00000000001B /* PBXContainerItemProxy */;
 		};
+		C7EFEF7D69AA7C765288F84F /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			name = CryptoBot;
+			target = 408BDC2A2D6D000000000008 /* CryptoBot */;
+			targetProxy = 06A986E6A5D029D380BF4519 /* PBXContainerItemProxy */;
+		};
 /* End PBXTargetDependency section */
 
 /* Begin XCBuildConfiguration section */
+		1BF638816FFD021C0ED65919 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CLANG_ENABLE_OBJC_WEAK = NO;
+				CODE_SIGN_STYLE = Automatic;
+				DEVELOPMENT_TEAM = 46C337T7YN;
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.thibaut.CryptoBotUITests;
+				PRODUCT_NAME = CryptoBotUITests;
+				SDKROOT = iphoneos;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_TARGET_NAME = CryptoBot;
+				VALIDATE_PRODUCT = YES;
+			};
+			name = Release;
+		};
 		408BDC2A2D6D000000000014 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
@@ -457,6 +561,23 @@
 			};
 			name = Release;
 		};
+		DEB91E705BCB692054BE17B1 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CLANG_ENABLE_OBJC_WEAK = NO;
+				CODE_SIGN_STYLE = Automatic;
+				DEVELOPMENT_TEAM = 46C337T7YN;
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.thibaut.CryptoBotUITests;
+				PRODUCT_NAME = CryptoBotUITests;
+				SDKROOT = iphoneos;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_TARGET_NAME = CryptoBot;
+			};
+			name = Debug;
+		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
@@ -483,6 +604,15 @@
 			buildConfigurations = (
 				408BDC2A2D6D000000000018 /* Debug */,
 				408BDC2A2D6D000000000019 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		E1E1078ED11E4304107539D4 /* Build configuration list for PBXNativeTarget "CryptoBotUITests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				1BF638816FFD021C0ED65919 /* Release */,
+				DEB91E705BCB692054BE17B1 /* Debug */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;

@@ -6,6 +6,7 @@
 - **Regenerate types** (if routes changed): `bunx nitro prepare` (run before `bun tsc`)
 - **Linter**: `bunx biome check`
 - **Runtime**: always use `bun`/`bunx`, never `npm`/`npx`
+- **iOS UI tests**: `xcodebuild test -project ios/CryptoBot.xcodeproj -scheme CryptoBot -destination 'platform=iOS Simulator,name=iPhone 17' -only-testing:CryptoBotUITests` (requires `bun dev` running)
 
 ## Development Workflow
 

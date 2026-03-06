@@ -62,6 +62,7 @@ struct OrdersView: View {
                 }
             }
         }
+        .accessibilityIdentifier("orders-list")
     }
 
     private func errorView(_ message: String) -> some View {
