@@ -121,6 +121,33 @@ It's recommended to start cautiously:
 2. **Micro-live** — Go live with minimal parameters: 3 levels, 10 USDC per order (~30 USDC committed total).
 3. **Production** — Once confident, scale up to 10 levels and 50 USDC per order.
 
+## 🔄 Order lifecycle
+
+**Order statuses:**
+
+| Status | Meaning |
+|---|---|
+| `pending` | Order created locally, not yet submitted to Kraken |
+| `open` | Order live on Kraken, waiting to be filled |
+| `filled` | Executed on Kraken, awaiting the counter-order at the next grid level to complete a trade |
+| `traded` | Part of a completed buy+sell trade pair (archived) |
+| `cancelled` | Cancelled before being filled (e.g. during grid recenter) |
+
+**What is a trade?**
+
+1 trade = 1 buy order filled at level N + 1 sell order filled at level N+1. Profit = (sell price − buy price) × BTC quantity − fees.
+
+**Concrete lifecycle example** (grid $66k–$84k, spacing $2k):
+
+```
+1. Grid places buy at $70k (level 2) on Kraken → status: open
+2. Price drops to $70k → Kraken fills the buy → status: filled
+3. Bot places sell at $72k (level 3) → status: open
+4. Price rises to $72k → Kraken fills the sell → status: filled
+5. Bot detects both filled → records trade (profit ≈ $2k × sizeBtc − fees)
+6. Both orders → status: traded
+```
+
 ## 📱 iOS app
 
 A companion iOS app lets you monitor the bot's performance (P&L, trades, open orders, balances) directly from your iPhone, with a home screen widget.
