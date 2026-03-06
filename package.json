@@ -21,6 +21,7 @@
   },
   "dependencies": {
     "@sentry/bun": "10.40.0",
+    "consola": "3.4.2",
     "zod": "4.3.6"
   }
 }
