@@ -38,7 +38,7 @@ struct GridConfig: Codable, Sendable {
     let levels: Int
     let orderSizeUsdc: Double
     let spacing: Double
-    let version: Int
+    let version: Int?
     let createdAt: String
     let recenteredAt: String?
 }

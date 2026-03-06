@@ -52,6 +52,7 @@ struct ContentView: View {
                 } label: {
                     row("Trades", value: "\(stats.tradeCount)")
                 }
+                .accessibilityIdentifier("nav-trades")
             }
 
             Section("Orders") {
@@ -60,6 +61,7 @@ struct ContentView: View {
                 } label: {
                     row("Buy Orders", value: "\(stats.openBuyOrders)", color: .green)
                 }
+                .accessibilityIdentifier("nav-orders")
                 NavigationLink {
                     OrdersView()
                 } label: {
@@ -85,7 +87,9 @@ struct ContentView: View {
             Section("Grid") {
                 row("Range", value: "\(formatUsdc(stats.gridConfig.lowerPrice)) – \(formatUsdc(stats.gridConfig.upperPrice))")
                 row("Levels", value: "\(stats.gridConfig.levels)")
-                row("Version", value: "v\(stats.gridConfig.version)")
+                if let version = stats.gridConfig.version {
+                    row("Version", value: "v\(version)")
+                }
                 if let recenteredAt = stats.gridConfig.recenteredAt {
                     row("Last Recenter", value: formatRelativeDate(recenteredAt))
                 }
@@ -117,6 +121,7 @@ struct ContentView: View {
                 }
             }
         }
+        .accessibilityIdentifier("dashboard")
     }
 
     private func row(_ title: String, value: String, color: Color = .secondary, bold: Bool = false) -> some View {
