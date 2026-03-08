@@ -98,10 +98,10 @@ struct SmallWidgetView: View {
 
                 HStack(spacing: 2) {
                     Image(systemName: "hourglass")
-                    Text("\(stats.pendingTradeCount) pending")
+                    Text("\(stats.pendingTradeCount)")
                     Text("·")
                     Image(systemName: "checkmark.circle")
-                    Text("\(stats.tradeCount) done")
+                    Text("\(stats.tradeCount)")
                 }
                 .font(.caption)
                 .foregroundStyle(.secondary)
@@ -154,12 +154,12 @@ struct MediumWidgetView: View {
 
                 HStack(spacing: 4) {
                     Image(systemName: "hourglass")
-                    Text("\(stats.pendingTradeCount) pending")
+                    Text("\(stats.pendingTradeCount)")
                     Text("·")
                     Image(systemName: "checkmark.circle")
-                    Text("\(stats.tradeCount) done")
+                    Text("\(stats.tradeCount)")
                     Text("·")
-                    Text("\(formatUsdc(stats.totalFeesUsdc)) fees")
+                    Text(formatUsdc(stats.totalFeesUsdc))
                 }
                 .font(.caption)
                 .foregroundStyle(.secondary)
