@@ -91,7 +91,7 @@ struct TradesView: View {
         defer { loading = false }
         do {
             trades = try await APIClient.fetchTrades()
-            expandedTradeIds = Set(trades.filter { $0.status == "pending-sell" }.map(\.id))
+            expandedTradeIds = Set(trades.filter { $0.status != "completed" }.map(\.id))
             error = nil
         } catch {
             self.trades = []
@@ -355,5 +355,10 @@ private func formatPrice(_ value: Double?) -> String {
 
 private func formatTime(_ iso: String?) -> String? {
     guard let iso else { return nil }
-    return formatRelativeDate(iso)
+    let isoFormatter = ISO8601DateFormatter()
+    isoFormatter.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
+    guard let date = isoFormatter.date(from: iso) else { return nil }
+    let formatter = DateFormatter()
+    formatter.dateFormat = "dd/MM HH:mm"
+    return formatter.string(from: date)
 }
