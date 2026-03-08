@@ -5,17 +5,29 @@ struct TradesResponse: Codable, Sendable {
     let data: [TradeData]
 }
 
+struct OrderStepData: Codable, Sendable {
+    let price: Double
+    let placedAt: String
+    let filledAt: String?
+}
+
 struct TradeData: Codable, Sendable, Identifiable {
     let id: String
-    let buyOrderId: String
-    let sellOrderId: String
-    let buyPrice: Double
-    let sellPrice: Double
+    let level: Int
+    let status: String
     let sizeBtc: Double
-    let profitUsdc: Double
-    let feeUsdc: Double
-    let completedAt: String
-    let level: Int?
-    let buyFilledAt: String?
-    let sellFilledAt: String?
+    let sizeUsdc: Double
+    let updatedAt: String
+
+    // buying + selling + completed
+    let buyOrder: OrderStepData?
+    let expectedSellPrice: Double?
+
+    // selling + pending-sell + completed
+    let sellOrder: OrderStepData?
+    let expectedBuyPrice: Double?
+
+    // completed only
+    let profitUsdc: Double?
+    let feeUsdc: Double?
 }

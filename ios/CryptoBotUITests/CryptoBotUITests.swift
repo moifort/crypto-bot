@@ -33,16 +33,4 @@ final class CryptoBotUITests: XCTestCase {
         XCTAssertFalse(errorLabel.exists, "Should not show error view")
     }
 
-    func testOrdersViewLoads() {
-        let dashboard = app.collectionViews["dashboard"]
-        XCTAssertTrue(dashboard.waitForExistence(timeout: 15))
-
-        app.buttons["nav-orders"].tap()
-
-        let navBar = app.navigationBars["Orders"]
-        XCTAssertTrue(navBar.waitForExistence(timeout: 10), "Orders view should load")
-
-        let errorLabel = app.staticTexts["Error"]
-        XCTAssertFalse(errorLabel.exists, "Should not show error view")
-    }
 }

@@ -48,10 +48,7 @@ export type StatsResult = {
   totalProfitUsdc: SignedUsdc
   totalFeesUsdc: Usdc
   tradeCount: number
-  openBuyOrders: number
-  openSellOrders: number
-  filledBuyOrders: number
-  filledSellOrders: number
+  pendingTradeCount: number
   balanceUsdc: Usdc
   balanceBtc: Btc
   currentPrice: BtcPrice
@@ -78,3 +75,43 @@ export type CompletedTrade = {
   feeUsdc: Usdc
   completedAt: Timestamp
 }
+
+export type OrderStep = {
+  price: BtcPrice
+  placedAt: Timestamp
+}
+
+export type FilledOrderStep = OrderStep & {
+  filledAt: Timestamp
+}
+
+export type Trade = {
+  id: TradeId
+  level: GridLevel
+  sizeBtc: Btc
+  sizeUsdc: Usdc
+  updatedAt: Timestamp
+} & (
+  | {
+      status: 'buying'
+      buyOrder: OrderStep
+      expectedSellPrice: BtcPrice
+    }
+  | {
+      status: 'selling'
+      buyOrder: FilledOrderStep
+      sellOrder: OrderStep
+    }
+  | {
+      status: 'pending-sell'
+      sellOrder: OrderStep
+      expectedBuyPrice: BtcPrice
+    }
+  | {
+      status: 'completed'
+      buyOrder: FilledOrderStep
+      sellOrder: FilledOrderStep
+      profitUsdc: SignedUsdc
+      feeUsdc: Usdc
+    }
+)

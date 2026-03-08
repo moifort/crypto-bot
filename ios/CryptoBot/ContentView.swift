@@ -47,35 +47,26 @@ struct ContentView: View {
             Section("Performance") {
                 row("Profit", value: formatUsdc(stats.totalProfitUsdc),
                     color: stats.totalProfitUsdc >= 0 ? .green : .red, bold: true)
+                row("Fees", value: formatUsdc(stats.totalFeesUsdc))
+            }
+
+            Section("Activity") {
                 NavigationLink {
                     TradesView()
                 } label: {
-                    row("Trades", value: "\(stats.tradeCount)")
-                }
-                .accessibilityIdentifier("nav-trades")
-            }
-
-            Section("Orders") {
-                NavigationLink {
-                    OrdersView()
-                } label: {
-                    row("Buy Orders", value: "\(stats.openBuyOrders)", color: .green)
-                }
-                .accessibilityIdentifier("nav-orders")
-                NavigationLink {
-                    OrdersView()
-                } label: {
-                    row("Sell Orders", value: "\(stats.openSellOrders)", color: .red)
-                }
-                if (stats.filledBuyOrders ?? 0) + (stats.filledSellOrders ?? 0) > 0 {
-                    NavigationLink {
-                        OrdersView()
-                    } label: {
-                        row("Pending Trades",
-                            value: "\((stats.filledBuyOrders ?? 0) + (stats.filledSellOrders ?? 0))",
-                            color: .orange)
+                    HStack {
+                        Text("Trades")
+                        Spacer()
+                        HStack(spacing: 4) {
+                            Text("\(stats.pendingTradeCount) pending")
+                            Text("·")
+                            Text("\(stats.tradeCount) completed")
+                        }
+                        .foregroundStyle(.secondary)
+                        .font(.caption)
                     }
                 }
+                .accessibilityIdentifier("nav-trades")
             }
 
             Section("Market") {

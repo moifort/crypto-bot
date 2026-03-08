@@ -9,10 +9,7 @@ struct StatsData: Codable, Sendable {
     let totalProfitUsdc: Double
     let totalFeesUsdc: Double
     let tradeCount: Int
-    let openBuyOrders: Int
-    let openSellOrders: Int
-    let filledBuyOrders: Int?
-    let filledSellOrders: Int?
+    let pendingTradeCount: Int
     let balanceUsdc: Double
     let balanceBtc: Double
     let currentPrice: Double

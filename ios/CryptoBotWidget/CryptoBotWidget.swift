@@ -97,13 +97,11 @@ struct SmallWidgetView: View {
 
 
                 HStack(spacing: 2) {
-                    Image(systemName: "clock.arrow.circlepath")
-                    Text("\(stats.tradeCount)")
-                    Text("·")
                     Image(systemName: "hourglass")
-                    Text("\(stats.openBuyOrders + stats.openSellOrders)")
+                    Text("\(stats.pendingTradeCount) pending")
                     Text("·")
-                    Text("\(formatUsdc(stats.totalFeesUsdc)) fees")
+                    Image(systemName: "checkmark.circle")
+                    Text("\(stats.tradeCount) done")
                 }
                 .font(.caption)
                 .foregroundStyle(.secondary)
@@ -155,11 +153,11 @@ struct MediumWidgetView: View {
                 .foregroundStyle(.secondary)
 
                 HStack(spacing: 4) {
-                    Image(systemName: "clock.arrow.circlepath")
-                    Text("\(stats.tradeCount)")
-                    Text("·")
                     Image(systemName: "hourglass")
-                    Text("\(stats.openBuyOrders + stats.openSellOrders)")
+                    Text("\(stats.pendingTradeCount) pending")
+                    Text("·")
+                    Image(systemName: "checkmark.circle")
+                    Text("\(stats.tradeCount) done")
                     Text("·")
                     Text("\(formatUsdc(stats.totalFeesUsdc)) fees")
                 }
@@ -167,16 +165,6 @@ struct MediumWidgetView: View {
                 .foregroundStyle(.secondary)
 
                 HStack {
-                    HStack(spacing: 2) {
-                        Text("\(stats.openBuyOrders) buy")
-                        Text("·")
-                        Text("\(stats.openSellOrders) sell")
-                        Text("·")
-                        Text("\(stats.openBuyOrders + stats.openSellOrders)")
-                    }
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
-
                     Spacer()
 
                     if stats.sandboxMode {
@@ -288,10 +276,7 @@ extension StatsData {
         totalProfitUsdc: 1242.50,
         totalFeesUsdc: 42.0,
         tradeCount: 28,
-        openBuyOrders: 5,
-        openSellOrders: 4,
-        filledBuyOrders: 2,
-        filledSellOrders: 0,
+        pendingTradeCount: 9,
         balanceUsdc: 5000.0,
         balanceBtc: 0.05,
         currentPrice: 95000.0,

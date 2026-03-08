@@ -58,70 +58,162 @@ const makeTrade = (overrides?: Partial<CompletedTrade>): CompletedTrade => ({
 })
 
 describe('getTrades', () => {
-  test('enriches trades with level and timestamps', async () => {
-    const buyOrder = makeOrder({ side: 'buy', level: GridLevel(2), status: 'traded' })
-    const sellOrder = makeOrder({ side: 'sell', level: GridLevel(3), status: 'traded' })
+  test('completed trade has status completed with buyOrder and sellOrder', async () => {
+    const gridId = randomGridId()
+    const buyOrder = makeOrder({
+      gridId,
+      side: 'buy',
+      level: GridLevel(2),
+      status: 'traded',
+      price: BtcPrice(90000),
+      createdAt: Timestamp('2024-01-01T10:00:00.000Z'),
+      updatedAt: Timestamp('2024-01-01T11:00:00.000Z'),
+    })
+    const sellOrder = makeOrder({
+      gridId,
+      side: 'sell',
+      level: GridLevel(3),
+      status: 'traded',
+      price: BtcPrice(100000),
+      createdAt: Timestamp('2024-01-01T11:00:00.000Z'),
+      updatedAt: Timestamp('2024-01-01T14:00:00.000Z'),
+    })
     await repository.saveOrder(buyOrder)
     await repository.saveOrder(sellOrder)
 
     const trade = makeTrade({
       buyOrderId: buyOrder.id,
       sellOrderId: sellOrder.id,
+      buyPrice: BtcPrice(90000),
+      sellPrice: BtcPrice(100000),
     })
     await repository.saveTrade(trade)
 
     const trades = await TradingQuery.getTrades()
-    expect(trades).toHaveLength(1)
-    expect(trades[0].level).toBe(GridLevel(2))
-    expect(trades[0].buyFilledAt).toBe(buyOrder.updatedAt)
-    expect(trades[0].sellFilledAt).toBe(sellOrder.updatedAt)
+    const found = trades.find((t) => t.id === trade.id)
+    expect(found).toBeDefined()
+    expect(found?.status).toBe('completed')
+    expect(found?.level).toBe(GridLevel(2))
+    if (found?.status === 'completed') {
+      expect(found.buyOrder.filledAt).toBe(buyOrder.updatedAt)
+      expect(found.sellOrder.filledAt).toBe(sellOrder.updatedAt)
+      expect(found.profitUsdc).toBe(trade.profitUsdc)
+    }
   })
 
-  test('sorts by completedAt descending', async () => {
-    const trade1 = makeTrade({ completedAt: Timestamp('2024-01-01T00:00:00.000Z') })
-    const trade2 = makeTrade({ completedAt: Timestamp('2024-01-01T00:00:01.000Z') })
+  test('filled buy order with matching sell → status selling', async () => {
+    const gridId = randomGridId()
+    const gridConfig = makeGridConfig({ id: gridId, spacing: BtcPrice(500) })
+    await repository.saveGridConfig(gridConfig)
 
-    await repository.saveTrade(trade1)
-    await repository.saveTrade(trade2)
+    const filledBuy = makeOrder({
+      gridId,
+      side: 'buy',
+      level: GridLevel(3),
+      status: 'filled',
+      price: BtcPrice(84000),
+      createdAt: Timestamp('2024-01-01T10:00:00.000Z'),
+      updatedAt: Timestamp('2024-01-01T10:15:00.000Z'),
+    })
+    const openSell = makeOrder({
+      gridId,
+      side: 'sell',
+      level: GridLevel(4),
+      status: 'open',
+      price: BtcPrice(84500),
+      createdAt: Timestamp('2024-01-01T10:15:00.000Z'),
+      updatedAt: Timestamp('2024-01-01T10:15:00.000Z'),
+    })
+    await repository.saveOrder(filledBuy)
+    await repository.saveOrder(openSell)
 
     const trades = await TradingQuery.getTrades()
-    expect(trades).toHaveLength(2)
-    expect(new Date(trades[0].completedAt).getTime()).toBeGreaterThanOrEqual(
-      new Date(trades[1].completedAt).getTime(),
+    const found = trades.find((t) => t.status === 'selling')
+    expect(found).toBeDefined()
+    expect(found?.status).toBe('selling')
+    if (found?.status === 'selling') {
+      expect(found.buyOrder.filledAt).toBe(filledBuy.updatedAt)
+      expect(found.sellOrder.price).toBe(BtcPrice(84500))
+    }
+  })
+
+  test('open buy order → status buying with expectedSellPrice', async () => {
+    const gridConfig = makeGridConfig({ spacing: BtcPrice(500) })
+    await repository.saveGridConfig(gridConfig)
+
+    const openBuy = makeOrder({
+      gridId: gridConfig.id,
+      side: 'buy',
+      level: GridLevel(7),
+      status: 'open',
+      price: BtcPrice(86000),
+    })
+    await repository.saveOrder(openBuy)
+
+    const trades = await TradingQuery.getTrades()
+    const found = trades.find((t) => t.status === 'buying')
+    expect(found).toBeDefined()
+    if (found?.status === 'buying') {
+      expect(found.buyOrder.price).toBe(BtcPrice(86000))
+      expect(found.expectedSellPrice).toBe(BtcPrice(86500))
+    }
+  })
+
+  test('open sell standalone → status pending-sell with expectedBuyPrice', async () => {
+    const gridConfig = makeGridConfig({ spacing: BtcPrice(500) })
+    await repository.saveGridConfig(gridConfig)
+
+    const openSell = makeOrder({
+      gridId: gridConfig.id,
+      side: 'sell',
+      level: GridLevel(8),
+      status: 'open',
+      price: BtcPrice(86500),
+    })
+    await repository.saveOrder(openSell)
+
+    const trades = await TradingQuery.getTrades()
+    const found = trades.find((t) => t.status === 'pending-sell')
+    expect(found).toBeDefined()
+    if (found?.status === 'pending-sell') {
+      expect(found.sellOrder.price).toBe(BtcPrice(86500))
+      expect(found.expectedBuyPrice).toBe(BtcPrice(86000))
+    }
+  })
+
+  test('excludes traded and cancelled orders from active trades', async () => {
+    await repository.saveOrder(makeOrder({ status: 'cancelled', side: 'buy' }))
+    await repository.saveOrder(makeOrder({ status: 'traded', side: 'buy' }))
+
+    const trades = await TradingQuery.getTrades()
+    expect(trades.filter((t) => t.status === 'buying')).toHaveLength(0)
+  })
+
+  test('sorts by updatedAt descending', async () => {
+    const gridConfig = makeGridConfig()
+    await repository.saveGridConfig(gridConfig)
+
+    const order1 = makeOrder({
+      gridId: gridConfig.id,
+      status: 'open',
+      side: 'buy',
+      updatedAt: Timestamp('2024-01-01T00:00:00.000Z'),
+    })
+    const order2 = makeOrder({
+      gridId: gridConfig.id,
+      status: 'open',
+      side: 'buy',
+      updatedAt: Timestamp('2024-01-01T00:00:01.000Z'),
+    })
+    await repository.saveOrder(order1)
+    await repository.saveOrder(order2)
+
+    const trades = await TradingQuery.getTrades()
+    const buyingTrades = trades.filter((t) => t.status === 'buying')
+    expect(buyingTrades.length).toBeGreaterThanOrEqual(2)
+    expect(new Date(buyingTrades[0].updatedAt).getTime()).toBeGreaterThanOrEqual(
+      new Date(buyingTrades[1].updatedAt).getTime(),
     )
-  })
-})
-
-describe('getOrders', () => {
-  test('excludes traded and cancelled orders', async () => {
-    await repository.saveOrder(makeOrder({ status: 'open' }))
-    await repository.saveOrder(makeOrder({ status: 'pending' }))
-    await repository.saveOrder(makeOrder({ status: 'filled' }))
-    await repository.saveOrder(makeOrder({ status: 'cancelled' }))
-    await repository.saveOrder(makeOrder({ status: 'traded' }))
-
-    const orders = await TradingQuery.getOrders()
-    expect(orders).toHaveLength(3)
-    expect(orders.every((o) => o.status !== 'traded' && o.status !== 'cancelled')).toBe(true)
-  })
-
-  test('sorts by level ascending', async () => {
-    await repository.saveOrder(makeOrder({ level: GridLevel(3), status: 'open' }))
-    await repository.saveOrder(makeOrder({ level: GridLevel(1), status: 'open' }))
-    await repository.saveOrder(makeOrder({ level: GridLevel(2), status: 'open' }))
-
-    const orders = await TradingQuery.getOrders()
-    expect(orders[0].level).toBe(GridLevel(1))
-    expect(orders[1].level).toBe(GridLevel(2))
-    expect(orders[2].level).toBe(GridLevel(3))
-  })
-
-  test('strips internal fields', async () => {
-    await repository.saveOrder(makeOrder({ status: 'open' }))
-
-    const orders = await TradingQuery.getOrders()
-    expect(orders[0]).not.toHaveProperty('gridId')
-    expect(orders[0]).not.toHaveProperty('krakenOrderId')
   })
 })
 
@@ -147,8 +239,7 @@ describe('getStats', () => {
     expect(stats.totalProfitUsdc).toBe(SignedUsdc(30))
     expect(stats.totalFeesUsdc).toBe(Usdc(1.5))
     expect(stats.tradeCount).toBe(2)
-    expect(stats.openBuyOrders).toBe(1)
-    expect(stats.openSellOrders).toBe(1)
+    expect(stats.pendingTradeCount).toBe(2)
     expect(stats.gridConfig).toEqual(gridConfig)
     expect(stats.sandboxMode).toBe(true)
   })
