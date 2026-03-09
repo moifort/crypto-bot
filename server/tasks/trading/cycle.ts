@@ -12,7 +12,10 @@ const isTransientNetworkError = (error: unknown): boolean => {
     msg.includes('failed to fetch') ||
     msg.includes('econnrefused') ||
     msg.includes('enotfound') ||
-    error.name === 'TimeoutError'
+    error.name === 'TimeoutError' ||
+    msg.includes('kraken http 502') ||
+    msg.includes('kraken http 503') ||
+    msg.includes('kraken http 504')
   )
 }
 
