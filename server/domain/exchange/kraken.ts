@@ -144,10 +144,15 @@ export const placeOrder = async (
 
 export const queryOrders = async (orderIds: KrakenOrderId[]): Promise<KrakenOrderInfo[]> => {
   if (orderIds.length === 0) return []
-  const result = await privateRequest('QueryOrders', {
-    txid: orderIds.join(','),
-  })
-  return Object.entries(result as Record<string, KrakenRawOrder>).map(([id, order]) => ({
+  let result: Record<string, KrakenRawOrder>
+  try {
+    result = await privateRequest('QueryOrders', { txid: orderIds.join(',') })
+  } catch (error) {
+    // Kraken returns EGeneral:No data when order IDs are no longer in their system (purged after ~90 days)
+    if (error instanceof Error && error.message.includes('EGeneral:No data')) return []
+    throw error
+  }
+  return Object.entries(result).map(([id, order]) => ({
     orderId: KrakenOrderIdPrimitive(id),
     status: order.status,
     side: order.descr.type as OrderSide,
